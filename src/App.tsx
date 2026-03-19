@@ -31,16 +31,18 @@ import { ProviderCatalog } from './system/pages/ProviderCatalog'
 import { CartProvider } from './web/context/CartContext'
 import { AuthProvider } from './web/context/AuthContext'
 import { FavoritesProvider } from './web/context/FavoritesContext'
+import { WebNotificationProvider } from './web/context/WebNotificationContext'
 import { SystemNotificationProvider } from './system/context/SystemNotificationContext'
 import { SocketProvider } from './web/context/SocketContext'
 
 function App() {
   return ( 
-    <AuthProvider>
-      <CartProvider>
-        <FavoritesProvider>
-          <SystemNotificationProvider>
-            <SocketProvider>
+    <WebNotificationProvider>
+      <AuthProvider>
+        <CartProvider>
+          <FavoritesProvider>
+            <SystemNotificationProvider>
+              <SocketProvider>
               <Routes>
 
             {/* 🔥 WEB */}
@@ -99,12 +101,13 @@ function App() {
             <Route path="*" element={<h1>404 Not Found</h1>} />
 
               </Routes>
-            </SocketProvider>
-          </SystemNotificationProvider>
-        </FavoritesProvider>
+              </SocketProvider>
+            </SystemNotificationProvider>
+          </FavoritesProvider>
 
-      </CartProvider>
-    </AuthProvider>
+        </CartProvider>
+      </AuthProvider>
+    </WebNotificationProvider>
   )
 }
 

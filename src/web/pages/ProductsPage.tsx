@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import './ProductsPage.css';
 import './ServicesPage.css';
 import { useCart } from '../context/CartContext';
@@ -28,7 +28,7 @@ export const ProductsPage = ({ type }: ProductsPageProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
-  const { addToCart, cartCount } = useCart();
+  const { addToCart } = useCart();
 
   const selectedCategory = searchParams.get('category');
 
@@ -36,38 +36,31 @@ export const ProductsPage = ({ type }: ProductsPageProps) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 🔥 PRODUCTS
         const url = new URL(`${API_URL}/products`);
         if (selectedCategory) url.searchParams.append('category', selectedCategory);
         if (type) url.searchParams.append('type', type);
 
         const resProducts = await fetch(url.toString());
-        if (resProducts.ok) {
-          setProducts(await resProducts.json());
-        }
+        if (resProducts.ok) setProducts(await resProducts.json());
 
-        // 🔥 CATEGORIES
         const resCategories = await fetch(`${API_URL}/categories`);
-        if (resCategories.ok) {
-          setCategories(await resCategories.json());
-        }
-
+        if (resCategories.ok) setCategories(await resCategories.json());
       } catch (error) {
-        console.error("Error:", error);
+        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [selectedCategory, type]); // 🔥 FIX DEPENDENCIA
+  }, [selectedCategory, type]);
 
   const handleCategoryClick = (categoryName: string | null) => {
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev);
-      if (categoryName) newParams.set('category', categoryName);
-      else newParams.delete('category');
-      return newParams;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (categoryName) next.set('category', categoryName);
+      else next.delete('category');
+      return next;
     });
   };
 
@@ -77,63 +70,51 @@ export const ProductsPage = ({ type }: ProductsPageProps) => {
 
   return (
     <div className="products-page-body">
-
-  
-
-      {/* LAYOUT */}
       <div className="main-layout">
-
-        {/* SIDEBAR */}
         <aside className="sidebar">
-          <h3>Categorías</h3>
+          <h3>Categorias</h3>
           <ul className="category-list">
-            <li
-              onClick={() => handleCategoryClick(null)}
-              style={{ fontWeight: !selectedCategory ? 'bold' : 'normal' }}
-            >
-              Todas
+            <li onClick={() => handleCategoryClick(null)}>
+              <span>Todas</span>
+              {!selectedCategory && <i className="fa-solid fa-check"></i>}
             </li>
 
-            {categories.map(cat => (
-              <li
-                key={cat.id}
-                onClick={() => handleCategoryClick(cat.name)}
-                style={{ fontWeight: selectedCategory === cat.name ? 'bold' : 'normal' }}
-              >
-                {cat.name}
+            {categories.map((cat) => (
+              <li key={cat.id} onClick={() => handleCategoryClick(cat.name)}>
+                <span>{cat.name}</span>
+                {selectedCategory === cat.name && <i className="fa-solid fa-check"></i>}
               </li>
             ))}
           </ul>
         </aside>
 
-        {/* MAIN */}
-        <main>
-
-          {/* ALERTAS */}
-          {type === 'BOOK' && (
-            <div className="alert-book">
-              🔥 Feria del Libro: descuentos en arquitectura
+        <main className="services-main">
+          <section className="hero-banner product-page-hero">
+            <div className="hero-text">
+              <span className="hero-kicker">{type === 'BOOK' ? 'Biblioteca digital' : 'Aprendizaje online'}</span>
+              <h2>{selectedCategory ? `Explorando ${selectedCategory}` : pageTitle}</h2>
+              <p>
+                {type === 'BOOK'
+                  ? 'Recursos visuales y libros curados para creativos, estudios y equipos que quieren aprender mejor.'
+                  : 'Cursos listos para elevar tus habilidades con una experiencia mas clara y moderna.'}
+              </p>
             </div>
-          )}
-
-          {type === 'COURSE' && (
-            <div className="alert-course">
-              🎓 Cursos con certificado digital
-            </div>
-          )}
-
-          <h2>
-            {selectedCategory ? `Mostrando: ${selectedCategory}` : pageTitle}
-          </h2>
+          </section>
 
           {loading ? (
-            <p>Cargando...</p>
+            <div className="empty-market-state">
+              <i className="fa-solid fa-spinner fa-spin"></i>
+              <p>Cargando productos...</p>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="empty-market-state">
+              <i className="fa-regular fa-folder-open"></i>
+              <p>No hay productos para esta categoria.</p>
+            </div>
           ) : (
             <div className="product-grid">
-
-              {products.map(product => (
-                <div key={product.id} className="product-card">
-
+              {products.map((product) => (
+                <article key={product.id} className="product-card">
                   <div className="product-cover">
                     <img
                       src={product.cover_image || 'https://via.placeholder.com/400x550'}
@@ -145,30 +126,18 @@ export const ProductsPage = ({ type }: ProductsPageProps) => {
                   </div>
 
                   <div className="product-body">
-                    <h3>{product.title}</h3>
-                    <p>{product.description}</p>
+                    <h3 className="product-title">{product.title}</h3>
+                    <p className="product-description">{product.description}</p>
 
                     <div className="product-footer">
-                      <span className="product-price">
-                        ${product.price}
-                      </span>
-
-                      <button onClick={() => addToCart(product)}>
-                        Añadir
-                      </button>
+                      <span className="product-price">${product.price}</span>
+                      <button className="btn-buy" onClick={() => addToCart(product)}>Añadir</button>
                     </div>
                   </div>
-
-                </div>
+                </article>
               ))}
-
             </div>
           )}
-
-          {!loading && products.length === 0 && (
-            <p>No hay productos.</p>
-          )}
-
         </main>
       </div>
     </div>

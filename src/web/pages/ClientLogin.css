@@ -1,141 +1,136 @@
-/* src/web/pages/ClientLogin.css */
-.client-auth-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f9fa; /* Fondo claro para el lado del cliente */
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  padding: 20px;
+.client-auth-shell {
+  min-height: calc(100vh - 240px);
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+}
+
+.client-auth-panel {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  overflow: hidden;
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(19, 34, 56, 0.08);
+  box-shadow: var(--shadow-md);
+}
+
+.client-auth-aside {
+  padding: 40px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 24%),
+    linear-gradient(140deg, #132238 0%, #1f3a55 55%, #d77a29 100%);
+  color: #fff;
+}
+
+.client-auth-aside h1 {
+  margin: 16px 0 12px;
+  font-size: clamp(2rem, 3vw, 3.3rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.client-auth-aside p {
+  margin: 0 0 24px;
+  max-width: 440px;
+  color: rgba(255, 255, 255, 0.84);
+  line-height: 1.7;
+}
+
+.client-auth-aside ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.client-auth-aside li {
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .client-auth-card {
-  background: white;
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  border-radius: 8px; /* Bordes ligeramente redondeados para el cliente */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #eee;
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.client-auth-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
+  padding: 40px;
 }
 
 .client-auth-header h2 {
-  color: #333;
-  margin: 0 0 0.5rem 0;
-  font-size: 1.8rem;
-  font-weight: 700;
+  margin: 0 0 8px;
+  font-size: 2rem;
+  letter-spacing: -0.04em;
 }
 
 .client-auth-header p {
-  color: #666;
   margin: 0;
-  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .client-auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+  margin-top: 26px;
+  display: grid;
+  gap: 16px;
 }
 
 .client-form-group label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #444;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .client-input-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .client-input-wrapper i {
   position: absolute;
-  left: 1rem;
-  color: #999;
-  font-size: 1rem;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: var(--text-muted);
 }
 
-.client-input-wrapper input,
-.client-input-wrapper select {
+.client-input-wrapper input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: all 0.2s;
-  outline: none;
-  box-sizing: border-box;
-  font-family: inherit;
+  min-height: 54px;
+  padding: 0 16px 0 46px;
+  border-radius: 18px;
+  border: 1px solid rgba(19, 34, 56, 0.12);
+  background: #fbfaf7;
+  outline: 0;
 }
 
-.client-input-wrapper input:focus,
-.client-input-wrapper select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.client-btn-submit {
-  background: #007bff;
-  color: white;
-  padding: 0.85rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 0.5rem;
-}
-
-.client-btn-submit:hover {
-  background: #0056b3;
-}
-
-.client-auth-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-  border-top: 1px solid #eee;
-  padding-top: 1rem;
-  color: #777;
-  font-size: 0.9rem;
-}
-
-.client-auth-footer a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.client-auth-footer a:hover {
-  text-decoration: underline;
+.client-input-wrapper input:focus {
+  border-color: rgba(240, 138, 36, 0.7);
+  box-shadow: 0 0 0 4px rgba(240, 138, 36, 0.14);
 }
 
 .client-error-message {
-  color: #dc3545;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 0.75rem 1.25rem;
-  margin-bottom: 1rem;
-  border-radius: 4px;
-  text-align: center;
-  font-size: 0.9rem;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(232, 89, 126, 0.12);
+  color: #b13f61;
+  font-weight: 600;
+}
+
+.client-auth-footer {
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+}
+
+.client-auth-footer a {
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .client-auth-panel {
+    grid-template-columns: 1fr;
+  }
 }

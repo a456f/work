@@ -16,8 +16,7 @@
   padding: 1.2rem 1.5rem;
   min-width: 300px;
   max-width: 400px;
-  /* Sombra dura característica del sistema */
-  box-shadow: 8px 8px 0px rgba(0,0,0,0.2); 
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.2);
   display: flex;
   align-items: flex-start;
   gap: 15px;
@@ -83,7 +82,6 @@
   color: #000;
 }
 
-/* Barra de progreso */
 .system-toast-progress {
   position: absolute;
   bottom: 0;
@@ -97,7 +95,7 @@
   content: '';
   display: block;
   height: 100%;
-  background-color: #000; /* Color de la barra */
+  background-color: #000;
   width: 100%;
   transform-origin: left;
   animation: toastProgress 4000ms linear forwards;
