@@ -94,9 +94,9 @@ const uploadCatalog = multer({ storage: catalogStorage });
 // Configuración de la Base de Datos
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'workuser',
-  password: process.env.DB_PASSWORD || '123456',
-  database: process.env.DB_NAME || 'workdb',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'work_project',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -1224,6 +1224,93 @@ app.post('/api/chat', async (req, res) => {
   } catch (error) {
     console.error('Error en el servidor de chat:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
+// --- 10.1. Endpoints alternos de OpenAI para web ---
+app.post('/api/chat-openai', async (req, res) => {
+  const { messages } = req.body;
+
+  if (!messages) {
+    return res.status(400).json({ error: 'Se requiere el historial de mensajes.' });
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'Falta configurar OPENAI_API_KEY en el backend.' });
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-mini',
+        input: messages.map((msg) => ({
+          role: msg.role,
+          content: [{ type: 'input_text', text: msg.content }]
+        }))
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('Error de OpenAI chat:', data);
+      return res.status(500).json({ error: data.error?.message || 'Error al conectar con la IA.' });
+    }
+
+    res.json({ reply: data.output_text || 'No pude generar una respuesta en este momento.' });
+  } catch (error) {
+    console.error('Error en chat-openai:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
+app.post('/api/chat-image', async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: 'Debes enviar un prompt para generar la imagen.' });
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'Falta configurar OPENAI_API_KEY en el backend.' });
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt,
+        size: '1024x1024'
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('Error de OpenAI image:', data);
+      return res.status(500).json({ error: data.error?.message || 'No se pudo generar la imagen.' });
+    }
+
+    const image = data.data?.[0]?.b64_json
+      ? `data:image/png;base64,${data.data[0].b64_json}`
+      : data.data?.[0]?.url;
+
+    if (!image) {
+      return res.status(500).json({ error: 'La respuesta de OpenAI no incluyó ninguna imagen.' });
+    }
+
+    res.json({ image });
+  } catch (error) {
+    console.error('Error generando imagen con OpenAI:', error);
+    res.status(500).json({ error: 'Error interno del servidor al generar la imagen.' });
   }
 });
 
