@@ -9,7 +9,7 @@ import multer from 'multer';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001; // Puerto 3001 (diferente a Vite)
+const port = process.env.PORT || 3002; // Puerto 3002 (para evitar conflicto)
 
 // Middleware
 app.use(cors());
@@ -56,9 +56,9 @@ const uploadCatalog = multer({ storage: catalogStorage });
 // Configuración de la Base de Datos
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'work_project',
+  user: process.env.DB_USER || 'workuser',
+  password: process.env.DB_PASSWORD || '123456',
+  database: process.env.DB_NAME || 'workdb',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
