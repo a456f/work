@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { API_URL } from '../../config';
 
 export const ClientLogin = () => {
@@ -83,7 +83,14 @@ export const ClientLogin = () => {
         <button type="submit" style={{ padding: '0.75rem', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem' }}>
           Ingresar
         </button>
+                <Link to="/" style={{ textAlign: 'center', display: 'block', marginBottom: '0.5rem'}}>¿Olvidaste tu contraseña?</Link>
+
       </form>
+         <p style={{ marginTop: '1rem', textAlign: 'center' }}>
+        ¿No tienes cuenta? <Link to="/register/client">Regístrate como Cliente</Link>
+        |
+        <Link to="/register/provider">Regístrate como Diseñador</Link>
+      </p>
     </div>
   );
 };
