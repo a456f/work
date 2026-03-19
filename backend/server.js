@@ -8,7 +8,8 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 
-dotenv.config();
+dotenv.config({ path: path.join(process.cwd(), 'backend/.env') });
+
 
 const app = express();
 const httpServer = createServer(app); // Envolver express
