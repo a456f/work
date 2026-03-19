@@ -51,6 +51,8 @@ import { API_URL } from '../../config';
           </form>
           <p style={{ marginTop: '1rem', textAlign: 'center' }}>
             ¿No tienes cuenta? <Link to="/register/client">Regístrate como Cliente</Link>
+            <br />
+            ¿Eres profesional? <Link to="/register/provider">Regístrate como Diseñador</Link>
           </p>
         </div>
       </WebLayout>

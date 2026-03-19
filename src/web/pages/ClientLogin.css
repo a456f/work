@@ -1,0 +1,141 @@
+/* src/web/pages/ClientLogin.css */
+.client-auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa; /* Fondo claro para el lado del cliente */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  padding: 20px;
+}
+
+.client-auth-card {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  border-radius: 8px; /* Bordes ligeramente redondeados para el cliente */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.client-auth-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.client-auth-header h2 {
+  color: #333;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.client-auth-header p {
+  color: #666;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.client-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.client-form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.client-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.client-input-wrapper i {
+  position: absolute;
+  left: 1rem;
+  color: #999;
+  font-size: 1rem;
+}
+
+.client-input-wrapper input,
+.client-input-wrapper select {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.client-input-wrapper input:focus,
+.client-input-wrapper select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.client-btn-submit {
+  background: #007bff;
+  color: white;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.client-btn-submit:hover {
+  background: #0056b3;
+}
+
+.client-auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.client-auth-footer a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.client-auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.client-error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+}
