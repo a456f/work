@@ -3,6 +3,7 @@ import './ServiceRequests.css';
 import { API_URL } from '../../config';
 import { useSystemNotification } from '../context/SystemNotificationContext';
 import { RequestChat } from '../../web/components/RequestChat';
+import { useSocket } from '../../web/context/SocketContext';
 
 interface Request {
   id: number;
@@ -27,6 +28,7 @@ interface DeliveryData {
 
 export const ServiceRequests = () => {
   const { notify } = useSystemNotification();
+  const { socket } = useSocket();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
@@ -57,6 +59,20 @@ export const ServiceRequests = () => {
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotification = () => {
+      fetchRequests();
+    };
+
+    socket.on('new_notification', handleNewNotification);
+
+    return () => {
+      socket.off('new_notification', handleNewNotification);
+    };
+  }, [socket, fetchRequests]);
 
   // Abre el modal (sirve tanto para cotizar como para entregar, dependiendo del estado)
   const handleOpenModal = (request: Request) => {

@@ -638,6 +638,7 @@ app.post('/api/service-requests', async (req, res) => {
     const [provRows] = await connection.execute('SELECT user_id FROM provider_profiles WHERE id = ?', [provider_id]);
     if (provRows.length > 0) {
       const providerUserId = provRows[0].user_id;
+      console.log(`Emitiendo notificacion de nueva solicitud a user_${providerUserId}`);
       io.to(`user_${providerUserId}`).emit('new_notification', { title: 'Nueva Solicitud', message: '¡Has recibido un nuevo trabajo potencial!' });
     }
 
