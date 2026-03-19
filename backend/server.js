@@ -94,9 +94,9 @@ const uploadCatalog = multer({ storage: catalogStorage });
 // Configuración de la Base de Datos
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'work_project',
+  user: process.env.DB_USER || 'workuser',
+  password: process.env.DB_PASSWORD || '123456',
+  database: process.env.DB_NAME || 'workdb',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
