@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { WebLayout } from './WebLayout';
 import { API_URL } from '../../config';
   
@@ -49,6 +49,9 @@ import { API_URL } from '../../config';
             <input name="password" type="password" placeholder="Contraseña" onChange={handleChange} required />
             <button type="submit" className="btn-primary" style={{ padding: '0.5rem', background: '#333', color: 'white', border: 'none' }}>Entrar</button>
           </form>
+          <p style={{ marginTop: '1rem', textAlign: 'center' }}>
+            ¿No tienes cuenta? <Link to="/register/client">Regístrate como Cliente</Link>
+          </p>
         </div>
       </WebLayout>
     );
