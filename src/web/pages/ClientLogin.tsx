@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../config';
+import { AUTH_CHANGED_EVENT } from '../context/SocketContext';
 
 interface LoginResponse {
   id: number;
@@ -50,6 +51,7 @@ export const ClientLogin = () => {
 
       // Guardar usuario
       localStorage.setItem('currentUser', JSON.stringify(data));
+      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 
       // Redirección por rol
       if (data.role === 'PROVIDER') {

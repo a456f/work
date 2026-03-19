@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './SystemLayout.css';
-import { useSocket } from '../../web/context/SocketContext';
+import { AUTH_CHANGED_EVENT, useSocket } from '../../web/context/SocketContext';
 import { useSystemNotification } from '../context/SystemNotificationContext';
 
 interface SystemLayoutProps {
@@ -44,6 +44,7 @@ export const SystemLayout = ({ children }: SystemLayoutProps) => {
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
     navigate('/');
   };
 

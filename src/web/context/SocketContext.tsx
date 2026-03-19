@@ -4,6 +4,7 @@ import { API_URL } from '../../config';
 
 // Extraer solo la URL base (sin /api) para el socket
 const SOCKET_URL = API_URL.replace('/api', '');
+export const AUTH_CHANGED_EVENT = 'auth-changed';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -15,18 +16,32 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    // Conectar al socket
     const newSocket = io(SOCKET_URL);
     setSocket(newSocket);
 
-    // Identificar al usuario en el socket si está logueado
-    const userStr = localStorage.getItem('currentUser');
-    if (userStr) {
+    const joinUserRoom = () => {
+      const userStr = localStorage.getItem('currentUser');
+      if (!userStr) return;
+
       const user = JSON.parse(userStr);
-      newSocket.emit('join_user_room', user.id);
-    }
+      if (user?.id) {
+        newSocket.emit('join_user_room', user.id);
+      }
+    };
+
+    const reconnectSocket = () => {
+      if (newSocket.connected) {
+        newSocket.disconnect();
+      }
+      newSocket.connect();
+    };
+
+    newSocket.on('connect', joinUserRoom);
+    window.addEventListener(AUTH_CHANGED_EVENT, reconnectSocket);
 
     return () => {
+      newSocket.off('connect', joinUserRoom);
+      window.removeEventListener(AUTH_CHANGED_EVENT, reconnectSocket);
       newSocket.disconnect();
     };
   }, []);

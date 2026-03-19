@@ -4,6 +4,7 @@ import { API_URL } from '../../config';
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Asegurar iconos
 import './ProviderLogin.css';
 import { useSystemNotification } from '../context/SystemNotificationContext';
+import { AUTH_CHANGED_EVENT } from '../../web/context/SocketContext';
 
 export const ProviderLogin = () => {
   const { notify } = useSystemNotification();
@@ -30,6 +31,7 @@ export const ProviderLogin = () => {
           return;
         }
         localStorage.setItem('currentUser', JSON.stringify(data));
+        window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
         notify('Bienvenido', `Hola, ${data.name}`, 'success');
         navigate('/admin');
       } else {

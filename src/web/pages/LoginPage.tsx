@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { WebLayout } from './WebLayout';
 import { API_URL } from '../../config';
+import { AUTH_CHANGED_EVENT } from '../context/SocketContext';
   
   export const LoginPage = () => {
     const navigate = useNavigate();
@@ -25,6 +26,7 @@ import { API_URL } from '../../config';
         if (res.ok) {
           // Guardar sesión (simple)
           localStorage.setItem('currentUser', JSON.stringify(data));
+          window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
           
           if (data.role === 'PROVIDER') {
             navigate('/admin'); // Ir al panel de sistema

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './ServicesPage.css';
 import { useCart } from '../context/CartContext';
 import { API_URL } from '../../config';
+import { AUTH_CHANGED_EVENT } from '../context/SocketContext';
 
 interface Service {
   id: number;
@@ -61,6 +62,7 @@ export const ServicesPage = () => {
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     localStorage.removeItem('currentUser');
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
     setCurrentUser(null);
     navigate('/login/client');
   };
