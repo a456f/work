@@ -31,70 +31,76 @@ import { ProviderCatalog } from './system/pages/ProviderCatalog'
 import { CartProvider } from './web/context/CartContext'
 import { AuthProvider } from './web/context/AuthContext'
 import { FavoritesProvider } from './web/context/FavoritesContext'
+import { SystemNotificationProvider } from './system/context/SystemNotificationContext'
+import { SocketProvider } from './web/context/SocketContext'
 
 function App() {
   return ( 
     <AuthProvider>
       <CartProvider>
         <FavoritesProvider>
-          <Routes>
+          <SystemNotificationProvider>
+            <SocketProvider>
+              <Routes>
 
-          {/* 🔥 WEB */}
-          <Route element={<WebLayout children={undefined} />}>
+            {/* 🔥 WEB */}
+            <Route element={<WebLayout children={undefined} />}>
 
-            <Route path="/" element={
-              <div className="home-container">
-                <h1 className="home-title">
-                  Encuentra Arquitectos y Diseñadores
-                </h1>
-                <p className="home-subtitle">
-                  Conecta con profesionales creativos
-                </p>
-              </div>
-            } />
+              <Route path="/" element={
+                <div className="home-container">
+                  <h1 className="home-title">
+                    Encuentra Arquitectos y Diseñadores
+                  </h1>
+                  <p className="home-subtitle">
+                    Conecta con profesionales creativos
+                  </p>
+                </div>
+              } />
 
-            <Route path="/books" element={<BooksPage />} />
-            <Route path="/services" element={<ServicesPage />} />
-            <Route path="/courses" element={<ProductsPage type="COURSE" />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/favorites" element={<FavoritesPage />} />
-            <Route path="/chat" element={<AIChatPage />} />
+              <Route path="/books" element={<BooksPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/courses" element={<ProductsPage type="COURSE" />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/chat" element={<AIChatPage />} />
 
-            {/* ✅ AQUÍ ESTÁ EL FIX */}
-            <Route path="/client-requests" element={<ClientRequests />} />
+              {/* ✅ AQUÍ ESTÁ EL FIX */}
+              <Route path="/client-requests" element={<ClientRequests />} />
 
-            <Route path="/my-downloads" element={<MyDownloads />} />
+              <Route path="/my-downloads" element={<MyDownloads />} />
 
-          </Route>
+            </Route>
 
-          {/* AUTH */}
-          <Route path="/register/client" element={<ClientRegister />} />
-          <Route path="/login/client" element={<ClientLogin />} />
-          <Route path="/login/provider" element={<ProviderLogin />} />
-          <Route path="/register/provider" element={<ProviderRegister />} />
+            {/* AUTH */}
+            <Route path="/register/client" element={<ClientRegister />} />
+            <Route path="/login/client" element={<ClientLogin />} />
+            <Route path="/login/provider" element={<ProviderLogin />} />
+            <Route path="/register/provider" element={<ProviderRegister />} />
 
-          {/* ADMIN */}
-          <Route path="/admin/add-product" element={<AdminProducts />} />
+            {/* ADMIN */}
+            <Route path="/admin/add-product" element={<AdminProducts />} />
 
-          <Route
-            path="/admin/*"
-            element={
-              <SystemLayout>
-                <Routes>
-                  <Route path="services/new" element={<CreateService />} />
-                  <Route path="requests" element={<ServiceRequests />} />
-                  <Route path="orders" element={<AdminOrders />} />
-                  <Route path="catalog" element={<ProviderCatalog />} />
-                  <Route path="*" element={<MyServices />} />
-                </Routes>
-              </SystemLayout>
-            }
-          />
+            <Route
+              path="/admin/*"
+              element={
+                <SystemLayout>
+                  <Routes>
+                    <Route path="services/new" element={<CreateService />} />
+                    <Route path="requests" element={<ServiceRequests />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="catalog" element={<ProviderCatalog />} />
+                    <Route path="*" element={<MyServices />} />
+                  </Routes>
+                </SystemLayout>
+              }
+            />
 
-          {/* 404 */}
-          <Route path="*" element={<h1>404 Not Found</h1>} />
+            {/* 404 */}
+            <Route path="*" element={<h1>404 Not Found</h1>} />
 
-          </Routes>
+              </Routes>
+            </SocketProvider>
+          </SystemNotificationProvider>
         </FavoritesProvider>
 
       </CartProvider>

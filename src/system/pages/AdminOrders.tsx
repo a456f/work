@@ -23,7 +23,7 @@ export const AdminOrders = () => {
 
   return (
     <div className="admin-orders-container">
-      <h2><i className="fa-solid fa-receipt"></i> Historial de Ventas</h2>
+      <h2>Historial Ventas</h2>
       <table className="orders-table">
         <thead>
           <tr>

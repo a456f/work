@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CreateService.css';
 import { API_URL } from '../../config';
+import { useSystemNotification } from '../context/SystemNotificationContext';
 
 export const CreateService = () => {
+  const { notify } = useSystemNotification();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '', description: '', base_price: '', min_days: '', max_days: ''
@@ -18,10 +20,16 @@ export const CreateService = () => {
     
     // Recuperar ID del proveedor logueado
     const userStr = localStorage.getItem('currentUser');
-    if (!userStr) return alert('No has iniciado sesión');
+    if (!userStr) {
+      notify('Error', 'No has iniciado sesión.', 'error');
+      return;
+    }
     const user = JSON.parse(userStr);
 
-    if (user.role !== 'PROVIDER') return alert('Solo los proveedores pueden crear servicios');
+    if (user.role !== 'PROVIDER') {
+      notify('Acceso Denegado', 'Solo los proveedores pueden crear servicios.', 'error');
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/services`, {
@@ -34,23 +42,23 @@ export const CreateService = () => {
       });
 
       if (res.ok) {
-        alert('¡Servicio creado exitosamente!');
+        notify('Servicio Creado', 'Tu servicio ha sido publicado con éxito.', 'success');
         // Redirigir al listado de servicios
         navigate('/admin');
       } else {
-        alert('Error al crear servicio');
+        notify('Error', 'No se pudo crear el servicio.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Error de conexión');
+      notify('Error de Conexión', 'Inténtalo más tarde.', 'error');
     }
   };
 
   return (
     <div className="create-service-container">
       <div className="create-service-header">
-        <h2><i className="fa-solid fa-plus-circle"></i> Nuevo Servicio</h2>
-        <p>Completa la información para publicar tu servicio en el marketplace.</p>
+        <h2>Nuevo Servicio</h2>
+        <p>Define tu oferta para el marketplace</p>
       </div>
 
       <form onSubmit={handleSubmit}>

@@ -1,0 +1,109 @@
+.system-toast-container {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  pointer-events: none;
+}
+
+.system-toast {
+  pointer-events: auto;
+  background: #ffffff;
+  border: 1px solid #000;
+  padding: 1.2rem 1.5rem;
+  min-width: 300px;
+  max-width: 400px;
+  /* Sombra dura característica del sistema */
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.2); 
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  animation: slideInSystem 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes slideInSystem {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.system-toast.exiting {
+  animation: fadeOutSystem 0.3s forwards;
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+@keyframes fadeOutSystem {
+  to { opacity: 0; transform: translateX(20px); }
+}
+
+.system-toast-icon {
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.toast-success .system-toast-icon { color: #000; }
+.toast-error .system-toast-icon { color: #000; }
+
+.system-toast-content {
+  flex: 1;
+}
+
+.system-toast-title {
+  display: block;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.system-toast-message {
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.4;
+}
+
+.system-toast-close {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.system-toast-close:hover {
+  color: #000;
+}
+
+/* Barra de progreso */
+.system-toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #f0f0f0;
+}
+
+.system-toast-progress::after {
+  content: '';
+  display: block;
+  height: 100%;
+  background-color: #000; /* Color de la barra */
+  width: 100%;
+  transform-origin: left;
+  animation: toastProgress 4000ms linear forwards;
+}
+
+@keyframes toastProgress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}

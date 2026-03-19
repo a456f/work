@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_URL } from '../../config';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import './ProviderLogin.css'; // Reutilizamos los mismos estilos
+import { useSystemNotification } from '../context/SystemNotificationContext';
 
 export const ProviderRegister = () => {
+  const { notify } = useSystemNotification();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -28,39 +32,90 @@ export const ProviderRegister = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Registro exitoso. Por favor inicia sesión.');
+        notify('Registro Exitoso', 'Tu cuenta ha sido creada correctamente. Inicia sesión.', 'success');
         navigate('/login/provider');
       } else {
-        alert(data.error || 'Error en el registro');
+        notify('Error de Registro', data.error || 'Hubo un problema al crear tu cuenta.', 'error');
       }
     } catch (error) {
       console.error(error);
-      alert('Error de conexión');
+      notify('Error de Conexión', 'No se pudo conectar con el servidor.', 'error');
     }
   };
 
   return (
-    <div style={{ maxWidth: '500px', margin: '2rem auto', padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h2>Registro de Profesional</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <input name="name" placeholder="Nombre Completo" onChange={handleChange} required style={{padding: '8px'}} />
-        <input name="email" type="email" placeholder="Correo Electrónico" onChange={handleChange} required style={{padding: '8px'}} />
-        <input name="password" type="password" placeholder="Contraseña" onChange={handleChange} required style={{padding: '8px'}} />
+    <div className="provider-login-container">
+      <div className="provider-login-card" style={{ maxWidth: '500px' }}>
+        <div className="login-header">
+          <div className="login-icon">
+            <i className="fa-solid fa-user-plus"></i>
+          </div>
+          <h2>Registro Profesional</h2>
+          <p>Únete a nuestra red de expertos</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="form-group">
+            <label>Nombre Completo</label>
+            <div className="input-wrapper">
+              <i className="fa-solid fa-user"></i>
+              <input name="name" placeholder="Tu nombre" onChange={handleChange} required />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Correo Electrónico</label>
+            <div className="input-wrapper">
+              <i className="fa-regular fa-envelope"></i>
+              <input name="email" type="email" placeholder="correo@ejemplo.com" onChange={handleChange} required />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Contraseña</label>
+            <div className="input-wrapper">
+              <i className="fa-solid fa-lock"></i>
+              <input name="password" type="password" placeholder="••••••••" onChange={handleChange} required />
+            </div>
+          </div>
         
-        <select name="type" onChange={handleChange} value={formData.type} style={{padding: '8px'}}>
-          <option value="ARCHITECT">Arquitecto</option>
-          <option value="DESIGNER">Diseñador</option>
-        </select>
+          <div className="form-group">
+            <label>Especialidad</label>
+            <div className="input-wrapper">
+              <i className="fa-solid fa-briefcase"></i>
+              <select name="type" onChange={handleChange} value={formData.type}>
+                <option value="ARCHITECT">Arquitecto</option>
+                <option value="DESIGNER">Diseñador</option>
+              </select>
+            </div>
+          </div>
 
-        <input name="title" placeholder="Título Profesional (ej. Arquitecto Senior)" onChange={handleChange} required style={{padding: '8px'}} />
-        <input name="experience_years" type="number" placeholder="Años de Experiencia" onChange={handleChange} required style={{padding: '8px'}} />
-        <textarea name="description" placeholder="Breve descripción de tu perfil" onChange={handleChange} style={{padding: '8px'}} />
+          <div className="form-group">
+            <label>Título Profesional</label>
+            <div className="input-wrapper">
+              <i className="fa-solid fa-graduation-cap"></i>
+              <input name="title" placeholder="Ej. Arquitecto Senior" onChange={handleChange} required />
+            </div>
+          </div>
 
-        <button type="submit" style={{ padding: '10px', background: '#333', color: 'white', border: 'none', cursor:'pointer' }}>Registrarse</button>
-      </form>
-      <p style={{ marginTop: '1rem', textAlign: 'center' }}>
-        ¿Ya tienes cuenta? <Link to="/login/provider">Inicia sesión aquí</Link>
-      </p>
+          <div className="form-group">
+            <label>Años de Experiencia</label>
+            <div className="input-wrapper">
+              <i className="fa-solid fa-calendar-days"></i>
+              <input name="experience_years" type="number" placeholder="0" onChange={handleChange} required />
+            </div>
+          </div>
+
+          <button type="submit" className="btn-login">
+            Crear Cuenta <i className="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+        
+        <div className="login-footer">
+          <p>¿Ya tienes cuenta? <Link to="/login/provider">Inicia sesión aquí</Link></p>
+          <Link to="/" style={{fontSize: '0.85rem', color: '#888', marginTop: '10px', display: 'block'}}>Volver al inicio</Link>
+        </div>
+      </div>
     </div>
   );
 };

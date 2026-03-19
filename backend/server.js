@@ -1,4 +1,6 @@
 import express from 'express';
+import { createServer } from 'http'; // Necesario para Socket.io
+import { Server } from 'socket.io';  // Importar Socket.io
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -9,11 +11,47 @@ import multer from 'multer';
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app); // Envolver express
+const io = new Server(httpServer, {   // Inicializar Socket.io
+  cors: {
+    origin: "*", // Permitir conexiones desde el frontend
+    methods: ["GET", "POST"]
+  }
+});
+
 const port = process.env.PORT || 3002; // Puerto 3002 (para evitar conflicto)
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// --- SOCKET.IO LÓGICA DE TIEMPO REAL ---
+io.on('connection', (socket) => {
+  console.log('Usuario conectado al socket:', socket.id);
+
+  // Unirse a sala personal para notificaciones (usando ID de usuario)
+  socket.on('join_user_room', (userId) => {
+    socket.join(`user_${userId}`);
+    console.log(`Usuario ${userId} unido a sala de notificaciones`);
+  });
+
+  // Unirse a sala de chat de una solicitud específica
+  socket.on('join_chat', (requestId) => {
+    socket.join(`request_${requestId}`);
+    console.log(`Socket ${socket.id} unido al chat de solicitud ${requestId}`);
+  });
+
+  // Manejar indicador de "escribiendo..."
+  socket.on('typing_start', (data) => {
+    // data: { requestId }
+    socket.to(`request_${data.requestId}`).emit('user_is_typing');
+  });
+
+  socket.on('typing_stop', (data) => {
+    // data: { requestId }
+    socket.to(`request_${data.requestId}`).emit('user_stopped_typing');
+  });
+});
 
 // Servir carpeta de uploads públicamente para acceder a las imágenes
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -56,9 +94,9 @@ const uploadCatalog = multer({ storage: catalogStorage });
 // Configuración de la Base de Datos
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'workuser',
-  password: process.env.DB_PASSWORD || '123456',
-  database: process.env.DB_NAME || 'workdb',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'work_project',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -557,6 +595,17 @@ app.get('/api/orders', async (req, res) => {
   );
 */
 /*
+  CREATE TABLE request_messages (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      request_id INT,
+      sender_id INT,
+      message TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (request_id) REFERENCES service_requests(id),
+      FOREIGN KEY (sender_id) REFERENCES users(id)
+  );
+*/
+/*
   CREATE TABLE reviews (
       id INT AUTO_INCREMENT PRIMARY KEY,
       request_id INT UNIQUE,
@@ -583,7 +632,16 @@ app.post('/api/service-requests', async (req, res) => {
       `INSERT INTO service_requests (service_id, client_id, provider_id, description) VALUES (?, ?, ?, ?)`,
       [service_id, client_id, provider_id, description]
     );
-    res.status(201).json({ message: 'Solicitud de servicio creada correctamente', requestId: result.insertId });
+
+    // 🔥 NOTIFICACIÓN EN TIEMPO REAL AL PROVEEDOR
+    // 1. Obtener el user_id del proveedor para notificarle a su sala personal
+    const [provRows] = await connection.execute('SELECT user_id FROM provider_profiles WHERE id = ?', [provider_id]);
+    if (provRows.length > 0) {
+      const providerUserId = provRows[0].user_id;
+      io.to(`user_${providerUserId}`).emit('new_notification', { title: 'Nueva Solicitud', message: '¡Has recibido un nuevo trabajo potencial!' });
+    }
+
+    res.status(201).json({ message: 'Solicitud enviada. El diseñador ha sido notificado.', requestId: result.insertId });
   } catch (error) {
     console.error('Error al crear la solicitud de servicio:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
@@ -640,6 +698,15 @@ app.put('/api/service-requests/:requestId/quote', async (req, res) => {
       [agreed_price, deadline, requestId]
     );
 
+    // 🔥 MENSAJE DE SISTEMA EN CHAT
+    // El proveedor (quien cotiza) envía este mensaje automático
+    const [reqData] = await connection.execute('SELECT provider_id FROM service_requests WHERE id = ?', [requestId]);
+    const [provData] = await connection.execute('SELECT user_id FROM provider_profiles WHERE id = ?', [reqData[0].provider_id]);
+    const senderId = provData[0].user_id;
+    
+    await insertSystemMessage(connection, requestId, senderId, `📋 Ha enviado una cotización: $${agreed_price} para el ${deadline}`);
+
+    // Notificar al cliente (la solicitud tiene client_id, habría que buscarlo pero por brevedad lo omitimos aquí)
     res.json({ message: 'Solicitud cotizada correctamente.' });
   } catch (error) {
     console.error('Error al cotizar la solicitud:', error);
@@ -704,6 +771,9 @@ app.put('/api/service-requests/:requestId/respond', async (req, res) => {
       return res.status(404).json({ error: 'La solicitud no se encontró, no pertenece al cliente o no está en estado de cotización.' });
     }
 
+    // 🔥 MENSAJE DE SISTEMA EN CHAT
+    await insertSystemMessage(connection, requestId, clientId, newStatus === 'ACCEPTED' ? '✅ Ha aceptado la cotización. El proyecto puede comenzar.' : '❌ Ha rechazado la cotización.');
+
     res.json({ message: `Solicitud ${newStatus === 'ACCEPTED' ? 'aceptada' : 'cancelada'} correctamente.` });
   } catch (error) {
     console.error('Error al responder a la cotización:', error);
@@ -722,6 +792,14 @@ app.put('/api/service-requests/:requestId/complete', async (req, res) => {
       `UPDATE service_requests SET status = 'COMPLETED' WHERE id = ?`,
       [requestId]
     );
+
+    // 🔥 MENSAJE DE SISTEMA EN CHAT (Busca el client_id de la solicitud, o asume que quien llama es el cliente)
+    // Para simplificar, obtenemos el client_id de la solicitud
+    const [reqRows] = await connection.execute('SELECT client_id FROM service_requests WHERE id = ?', [requestId]);
+    if (reqRows.length > 0) {
+      await insertSystemMessage(connection, requestId, reqRows[0].client_id, '🎉 Ha finalizado el pedido. ¡Gracias por confiar en nosotros!');
+    }
+
     res.json({ message: '¡Pedido finalizado con éxito! Gracias por confirmar.' });
   } catch (error) {
     console.error(error);
@@ -740,6 +818,13 @@ app.put('/api/service-requests/:requestId/revision', async (req, res) => {
       `UPDATE service_requests SET status = 'REVISION' WHERE id = ?`,
       [requestId]
     );
+
+    // 🔥 MENSAJE DE SISTEMA EN CHAT
+    const [reqRows] = await connection.execute('SELECT client_id FROM service_requests WHERE id = ?', [requestId]);
+    if (reqRows.length > 0) {
+      await insertSystemMessage(connection, requestId, reqRows[0].client_id, '🔄 Ha solicitado una revisión sobre la entrega.');
+    }
+
     res.json({ message: 'Se ha solicitado una revisión al profesional.' });
   } catch (error) {
     console.error(error);
@@ -759,6 +844,14 @@ app.put('/api/service-requests/:requestId/start', async (req, res) => {
       `UPDATE service_requests SET status = 'IN_PROGRESS' WHERE id = ?`,
       [requestId]
     );
+
+    // 🔥 MENSAJE DE SISTEMA EN CHAT
+    const [reqRows] = await connection.execute('SELECT provider_id FROM service_requests WHERE id = ?', [requestId]);
+    const [provData] = await connection.execute('SELECT user_id FROM provider_profiles WHERE id = ?', [reqRows[0].provider_id]);
+    if (provData.length > 0) {
+      await insertSystemMessage(connection, requestId, provData[0].user_id, '🚀 Ha comenzado a trabajar en el proyecto.');
+    }
+
     res.json({ message: 'Trabajo marcado como iniciado.' });
   } catch (error) {
     console.error('Error al iniciar trabajo:', error);
@@ -794,6 +887,12 @@ app.post('/api/service-requests/:requestId/deliver', async (req, res) => {
       `UPDATE service_requests SET status = 'DELIVERED' WHERE id = ?`,
       [requestId]
     );
+
+    // 🔥 MENSAJE DE SISTEMA EN CHAT
+    const [provData] = await connection.execute('SELECT user_id FROM provider_profiles WHERE id = ?', [(await connection.execute('SELECT provider_id FROM service_requests WHERE id = ?', [requestId]))[0][0].provider_id]);
+    if (provData.length > 0) {
+      await insertSystemMessage(connection, requestId, provData[0].user_id, '📦 Ha realizado una entrega. Por favor revísala.');
+    }
 
     await connection.commit();
     res.json({ message: 'Trabajo entregado exitosamente.' });
@@ -879,6 +978,81 @@ app.post('/api/reviews', async (req, res) => {
     await connection.rollback();
     console.error('Error al enviar la reseña:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
+  } finally {
+    connection.release();
+  }
+});
+
+// --- CHAT DE LA SOLICITUD ---
+
+// Enviar mensaje (Guarda en BD y emite por Socket)
+app.post('/api/request-messages', async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const { request_id, sender_id, message } = req.body;
+    
+    // Guardar en BD
+    const [result] = await connection.execute(
+      'INSERT INTO request_messages (request_id, sender_id, message) VALUES (?, ?, ?)',
+      [request_id, sender_id, message]
+    );
+
+    // Obtener nombre del remitente para el chat
+    const [userRows] = await connection.execute('SELECT name FROM users WHERE id = ?', [sender_id]);
+    const senderName = userRows[0]?.name || 'Usuario';
+
+    // 🔥 EMITIR MENSAJE EN TIEMPO REAL A LA SALA DE LA SOLICITUD
+    const messageData = { id: result.insertId, request_id, sender_id, message, created_at: new Date(), sender_name: senderName };
+    io.to(`request_${request_id}`).emit('receive_message', messageData);
+
+    res.json(messageData);
+  } catch (error) {
+    console.error(error);
+    // Capturar error de llave foránea (usuario o solicitud no existen)
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({ error: 'Tu sesión no es válida o la solicitud no existe. Por favor, cierra sesión e ingresa nuevamente.' });
+    }
+    res.status(500).json({ error: 'Error al enviar mensaje' });
+  } finally {
+    connection.release();
+  }
+});
+
+// --- HELPER PARA MENSAJES DE SISTEMA ---
+async function insertSystemMessage(connection, requestId, senderId, text) {
+  try {
+    const [result] = await connection.execute(
+      'INSERT INTO request_messages (request_id, sender_id, message) VALUES (?, ?, ?)',
+      [requestId, senderId, `[SYSTEM] ${text}`] // Prefijo especial para identificarlo en el front
+    );
+    
+    // Emitir socket para actualizar chat en vivo
+    const [userRows] = await connection.execute('SELECT name FROM users WHERE id = ?', [senderId]);
+    const senderName = userRows[0]?.name || 'Sistema';
+    const messageData = { id: result.insertId, request_id: requestId, sender_id: senderId, message: `[SYSTEM] ${text}`, created_at: new Date(), sender_name: senderName };
+    io.to(`request_${requestId}`).emit('receive_message', messageData);
+  } catch (e) {
+    console.error("Error insertando mensaje de sistema:", e);
+  }
+}
+
+// Obtener historial de mensajes
+app.get('/api/service-requests/:requestId/messages', async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const { requestId } = req.params;
+    const [rows] = await connection.execute(
+      `SELECT m.*, u.name as sender_name 
+       FROM request_messages m 
+       JOIN users u ON m.sender_id = u.id 
+       WHERE m.request_id = ? 
+       ORDER BY m.created_at ASC`,
+      [requestId]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al cargar mensajes' });
   } finally {
     connection.release();
   }
@@ -1051,6 +1225,8 @@ app.post('/api/chat', async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
-app.listen(port, () => {
-  console.log(`Servidor backend corriendo en http://localhost:${port}`);
+
+// IMPORTANTE: Usar httpServer en lugar de app.listen
+httpServer.listen(port, () => {
+  console.log(`Servidor backend + Socket.io corriendo en http://localhost:${port}`);
 });

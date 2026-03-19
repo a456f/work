@@ -1,70 +1,108 @@
 .system-layout {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
-  background-color: #f0f2f5;
-  font-family: 'Segoe UI', sans-serif;
+  background-color: #f8f9fa; /* Fondo gris muy claro para el contenido */
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.system-header {
-  background-color: #1a202c;
-  color: white;
-  padding: 0 2rem;
-  height: 64px;
+/* --- SIDEBAR --- */
+.system-sidebar {
+  width: 280px;
+  background-color: #000000;
+  color: #ffffff;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-direction: column;
+  padding: 2.5rem 2rem;
+  box-sizing: border-box;
+  flex-shrink: 0;
   position: sticky;
   top: 0;
-  z-index: 100;
+  height: 100vh;
+  border-right: 1px solid #222;
 }
 
 .system-brand {
-  font-size: 1.2rem;
-  font-weight: 600;
+  margin-bottom: 4rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  color: #fff;
+  text-decoration: none;
 }
 
 .system-nav {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
 }
 
 .nav-link {
-  color: #a0aec0;
+  color: #888;
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: color 0.2s;
+  padding: 12px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-right: 3px solid transparent; /* Indicador activo invisible */
 }
 
-.nav-link:hover {
-  color: white;
+.nav-link:hover, .nav-link.active {
+  color: #fff;
+  border-right-color: #fff; /* Indicador activo visible */
+}
+
+.nav-link i {
+  width: 24px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* Footer del Sidebar (Usuario + Logout) */
+.sidebar-footer {
+  margin-top: auto;
+  border-top: 1px solid #222;
+  padding-top: 2rem;
 }
 
 .logout-btn {
-  background: #e53e3e;
+  width: 100%;
+  background: transparent;
+  border: 1px solid #333;
   color: white;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 4px;
-  font-size: 0.85rem;
+  color: #888;
+  padding: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.8rem;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 1rem;
 }
 
 .logout-btn:hover {
-  background: #c53030;
+  background: #fff;
+  color: #000;
 }
 
+/* Contenido Principal */
 .system-main {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  flex: 1;
+  padding: 3rem 4rem;
   width: 100%;
   box-sizing: border-box;
+  overflow-y: auto;
 }

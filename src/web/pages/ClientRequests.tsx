@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import './ClientRequests.css'; // New CSS file
 import { StarRating } from '../components/StarRating';
 import { API_URL } from '../../config';
+import { RequestChat } from '../components/RequestChat';
 
 interface ClientRequest {
   id: number;
@@ -35,6 +36,7 @@ export const ClientRequests = () => {
   const [reviewRequest, setReviewRequest] = useState<ClientRequest | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [chatRequest, setChatRequest] = useState<ClientRequest | null>(null);
 
   const navigate = useNavigate();
 
@@ -232,6 +234,11 @@ export const ClientRequests = () => {
                         <i className="fa-solid fa-eye"></i> Ver Entrega
                       </button>
                     )}
+
+                    {/* Botón de Chat */}
+                    <button className="action-btn" style={{marginLeft:'5px', background:'#444', color:'white'}} onClick={() => setChatRequest(req)}>
+                      <i className="fa-solid fa-comments"></i> Chat
+                    </button>
                   </td>
                 </tr>
               )) : (
@@ -245,6 +252,16 @@ export const ClientRequests = () => {
           </table>
         )}
       </div>
+
+      {/* CHAT FLOTANTE */}
+      {chatRequest && user && (
+        <RequestChat 
+          requestId={chatRequest.id}
+          currentUserId={user.id}
+          title={`Chat - ${chatRequest.service_title}`}
+          onClose={() => setChatRequest(null)}
+        />
+      )}
 
       {/* Modal para ver la entrega */}
       {viewingDelivery && (

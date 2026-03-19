@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './ServiceRequests.css';
 import { API_URL } from '../../config';
+import { useSystemNotification } from '../context/SystemNotificationContext';
+import { RequestChat } from '../../web/components/RequestChat';
 
 interface Request {
   id: number;
@@ -24,16 +26,18 @@ interface DeliveryData {
 }
 
 export const ServiceRequests = () => {
+  const { notify } = useSystemNotification();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [quoteData, setQuoteData] = useState<QuoteData>({ agreed_price: '', deadline: '' });
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({ message: '', file_url: '' });
+  const [chatRequest, setChatRequest] = useState<Request | null>(null);
 
   const userStr = localStorage.getItem('currentUser');
   const user = userStr ? JSON.parse(userStr) : null;
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     if (user && user.providerId) {
       try {
         setLoading(true);
@@ -48,11 +52,11 @@ export const ServiceRequests = () => {
         setLoading(false);
       }
     }
-  };
+  }, [user?.providerId]);
 
   useEffect(() => {
     fetchRequests();
-  }, [user?.providerId]);
+  }, [fetchRequests]);
 
   // Abre el modal (sirve tanto para cotizar como para entregar, dependiendo del estado)
   const handleOpenModal = (request: Request) => {
@@ -86,16 +90,16 @@ export const ServiceRequests = () => {
       });
 
       if (res.ok) {
-        alert('Cotización enviada con éxito.');
+        notify('Cotización Enviada', 'El cliente ha recibido tu propuesta.', 'success');
         handleCloseModal();
         fetchRequests(); // Re-fetch requests to update the list
       } else {
         const data = await res.json();
-        alert(`Error: ${data.error || 'No se pudo enviar la cotización.'}`);
+        notify('Error', data.error || 'No se pudo enviar la cotización.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Error de conexión.');
+      notify('Error de Conexión', 'Inténtalo más tarde.', 'error');
     }
   };
 
@@ -108,13 +112,14 @@ export const ServiceRequests = () => {
         method: 'PUT'
       });
       if (res.ok) {
-        alert('Trabajo iniciado.');
+        notify('Trabajo Iniciado', 'El estado cambió a "En Progreso".', 'success');
         fetchRequests();
       } else {
-        alert('Error al iniciar el trabajo.');
+        notify('Error', 'No se pudo iniciar el trabajo.', 'error');
       }
     } catch (err) {
       console.error(err);
+      notify('Error', 'Error de conexión.', 'error');
     }
   };
 
@@ -131,14 +136,15 @@ export const ServiceRequests = () => {
       });
 
       if (res.ok) {
-        alert('¡Trabajo entregado correctamente!');
+        notify('Trabajo Entregado', 'Se ha notificado al cliente.', 'success');
         handleCloseModal();
         fetchRequests();
       } else {
-        alert('Error al enviar la entrega.');
+        notify('Error', 'No se pudo enviar la entrega.', 'error');
       }
     } catch (err) {
       console.error(err);
+      notify('Error', 'Error de conexión.', 'error');
     }
   };
 
@@ -147,8 +153,10 @@ export const ServiceRequests = () => {
   }
 
   return (
-    <div className="requests-container">
-      <h2>Solicitudes de Servicio</h2>
+    <div className="requests-container-page">
+      <div className="requests-header">
+        <h2>Solicitudes</h2>
+      </div>
       <table className="requests-table">
         <thead>
           <tr>
@@ -188,6 +196,11 @@ export const ServiceRequests = () => {
                     Entregar
                   </button>
                 )}
+                
+                {/* Botón de Chat siempre visible para hablar con el cliente */}
+                <button className="action-btn" style={{marginLeft:'5px', background:'#444', color:'white'}} onClick={() => setChatRequest(req)}>
+                  <i className="fa-solid fa-comments"></i> Chat
+                </button>
               </td>
             </tr>
           )) : (
@@ -197,6 +210,16 @@ export const ServiceRequests = () => {
           )}
         </tbody>
       </table>
+
+      {/* Componente de Chat Flotante */}
+      {chatRequest && user && (
+        <RequestChat 
+          requestId={chatRequest.id}
+          currentUserId={user.id} // user.id es el ID de usuario del proveedor
+          title={`Chat con ${chatRequest.client_name}`}
+          onClose={() => setChatRequest(null)}
+        />
+      )}
 
       {selectedRequest && (
         <div className="quote-modal-overlay">

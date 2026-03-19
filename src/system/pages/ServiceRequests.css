@@ -1,88 +1,111 @@
-/* src/system/pages/ServiceRequests.css */
 .requests-container {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  font-family: 'Inter', sans-serif;
+}
+
+.requests-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #000;
+  padding-bottom: 1rem;
+}
+
+.requests-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
 }
 
 .requests-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1.5rem;
+  background: white;
+  border: 1px solid #eee;
 }
 
 .requests-table th, .requests-table td {
-  padding: 12px 15px;
+  padding: 1.5rem;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #eee;
 }
 
 .requests-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.9rem;
+  background-color: #fff;
+  font-weight: 800;
+  color: #000;
+  font-size: 0.8rem;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #000;
 }
 
 .requests-table tr:last-child td {
   border-bottom: none;
 }
 
-.requests-table tr:hover {
-  background-color: #f5f7fa;
+.requests-table td {
+  color: #444;
+  font-size: 0.95rem;
 }
 
 .status-badge {
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 0; /* Bordes rectos */
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   white-space: nowrap;
+  display: inline-block;
 }
 
-.status-PENDING { background-color: #fff0c2; color: #7a5c00; }
-.status-QUOTED { background-color: #cce5ff; color: #004085; }
-.status-ACCEPTED { background-color: #d4edda; color: #155724; }
-.status-IN_PROGRESS { background-color: #d1ecf1; color: #0c5460; }
-.status-DELIVERED { background-color: #e2e3e5; color: #383d41; }
-.status-COMPLETED { background-color: #d4edda; color: #155724; border: 1px solid #155724; }
-.status-REVISION { background-color: #ffccbc; color: #bf360c; }
-.status-CANCELLED, .status-REJECTED { background-color: #f8d7da; color: #721c24; }
+/* Estilos de estado monocromáticos/elegantes */
+.status-PENDING { background-color: #eee; color: #555; }
+.status-QUOTED { background-color: #fff; border: 1px solid #000; color: #000; }
+.status-ACCEPTED { background-color: #000; color: #fff; }
+.status-IN_PROGRESS { background-color: #fff; border: 1px dashed #000; color: #000; }
+.status-DELIVERED { background-color: #333; color: #fff; }
+.status-COMPLETED { background-color: #000; color: #fff; }
+.status-REVISION { background-color: #fff; border: 1px solid #e53e3e; color: #e53e3e; }
+.status-CANCELLED, .status-REJECTED { color: #999; text-decoration: line-through; }
 
 .action-btn {
-  padding: 8px 16px;
+  padding: 8px 16px; 
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
 }
 
 .btn-quote {
-  background-color: #28a745;
+  background-color: #000;
   color: white;
 }
 .btn-quote:hover {
-  background-color: #218838;
+  background-color: #333;
+  transform: translateY(-2px);
 }
 
 .btn-start {
-  background-color: #17a2b8;
-  color: white;
+  background-color: #fff;
+  border: 1px solid #000;
+  color: #000;
 }
 .btn-start:hover {
-  background-color: #138496;
+  background-color: #000;
+  color: #fff;
 }
 
 .btn-deliver {
-  background-color: #6f42c1;
+  background-color: #000;
   color: white;
 }
 .btn-deliver:hover {
-  background-color: #5a32a3;
+  background-color: #333;
 }
 
 /* Modal Styles */
@@ -101,34 +124,46 @@
 
 .quote-modal-content {
   background: white;
-  padding: 2rem;
-  border-radius: 12px;
+  padding: 3rem;
+  border-radius: 0;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 20px 20px 0px rgba(0,0,0,0.2);
+  border: 1px solid #000;
 }
 
 .quote-modal-content h3 {
   margin-top: 0;
-  color: #333;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  color: #000;
+  margin-bottom: 1.5rem;
 }
 
 .quote-form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .quote-form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
 }
 
-.quote-form-group input {
+.quote-form-group input, .quote-form-group textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0;
   box-sizing: border-box;
+  font-family: inherit;
+}
+
+.quote-form-group input:focus, .quote-form-group textarea:focus {
+  border-color: #000;
+  outline: none;
 }
 
 .quote-modal-actions {

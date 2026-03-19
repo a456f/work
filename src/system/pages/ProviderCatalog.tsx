@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import './ProviderCatalog.css';
 import { API_URL } from '../../config';
+import { useSystemNotification } from '../context/SystemNotificationContext';
 
 interface CatalogItem {
   id: number;
@@ -10,6 +11,7 @@ interface CatalogItem {
 }
 
 export const ProviderCatalog = () => {
+  const { notify } = useSystemNotification();
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -40,7 +42,10 @@ export const ProviderCatalog = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !user) return alert("Selecciona una imagen");
+    if (!file || !user) {
+      notify('Atención', 'Debes seleccionar una imagen.', 'error');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('provider_id', user.providerId);
@@ -55,19 +60,25 @@ export const ProviderCatalog = () => {
       });
 
       if (res.ok) {
-        alert('Trabajo agregado');
+        notify('Éxito', 'Trabajo agregado al portafolio.', 'success');
         setShowModal(false);
         setTitle(''); setDesc(''); setFile(null);
         fetchCatalog();
       } else {
-        alert('Error al subir');
+        notify('Error', 'No se pudo subir el trabajo.', 'error');
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+      notify('Error', 'Error de conexión.', 'error');
+    }
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm('¿Borrar este trabajo del portafolio?')) return;
-    await fetch(`${API_URL}/catalog/${id}`, { method: 'DELETE' });
+    try {
+      await fetch(`${API_URL}/catalog/${id}`, { method: 'DELETE' });
+      notify('Eliminado', 'El trabajo ha sido eliminado.', 'success');
+    } catch (err) { notify('Error', 'No se pudo eliminar.', 'error'); }
     fetchCatalog();
   };
 
@@ -75,8 +86,8 @@ export const ProviderCatalog = () => {
     <div className="catalog-container">
       <div className="catalog-header">
         <div>
-          <h2 style={{margin:0, fontSize: '1.5rem'}}>Mi Portafolio</h2>
-          <p style={{margin:0, color:'#666'}}>Muestra tus mejores trabajos a los clientes</p>
+          <h2>Portafolio</h2>
+          <p style={{margin:0, color:'#666'}}>Muestra tu trabajo al mundo</p>
         </div>
         <button className="btn-create" onClick={() => setShowModal(true)}>
           <i className="fa-solid fa-camera"></i> Subir Trabajo
