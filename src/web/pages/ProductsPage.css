@@ -1,0 +1,115 @@
+/* Reutilizamos el mismo esquema de diseño de ServicesPage para consistencia */
+.products-page-body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-body, #f3f4f6);
+    color: var(--text-main, #0f1111);
+    font-size: 15px;
+    min-height: 100vh;
+}
+
+.products-page-body a { text-decoration: none; color: inherit; transition: 0.2s; }
+.products-page-body ul { list-style: none; padding: 0; margin: 0; }
+.products-page-body img { max-width: 100%; display: block; }
+.products-page-body button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+.product-card {
+    background: white;
+    border: 1px solid var(--border, #e7e7e7);
+    border-radius: var(--radius, 8px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: 0.2s;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.1));
+}
+
+.product-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+}
+
+.product-cover {
+    height: 220px;
+    background-color: #f0f2f5;
+    position: relative;
+}
+
+.product-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-type-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: white;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.product-type-BOOK { background-color: #3498db; }
+.product-type-COURSE { background-color: #e67e22; }
+
+.product-body {
+    padding: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    color: #1a1a1a;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-description {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 15px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-footer {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.product-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main, #0f1111);
+}
+
+.btn-buy {
+    padding: 8px 16px;
+    background: var(--primary, #131921);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.btn-buy:hover {
+    background: var(--accent, #ff9900);
+    color: var(--primary, #131921);
+}

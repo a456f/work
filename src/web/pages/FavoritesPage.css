@@ -1,0 +1,116 @@
+.favorites-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 60vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.favorites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.favorites-header h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.favorites-count {
+  background: #f8f9fa;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.favorites-empty-state {
+  text-align: center;
+  padding: 5rem 2rem;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.favorites-empty-state:hover {
+  transform: translateY(-5px);
+}
+
+.empty-icon-container {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #fff0f0 0%, #ffe0e3 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  color: #ff4757;
+  font-size: 3.5rem;
+  box-shadow: 0 10px 20px rgba(255, 71, 87, 0.15);
+  animation: pulse-heart 2s infinite;
+}
+
+@keyframes pulse-heart {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.favorites-empty-state h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+.favorites-empty-state p {
+  color: #7f8c8d;
+  margin-bottom: 2.5rem;
+  max-width: 450px;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.btn-explore {
+  background: #2c3e50;
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2);
+}
+
+.btn-explore:hover {
+  background: #34495e;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(44, 62, 80, 0.3);
+}
+
+.btn-explore i {
+  transition: transform 0.3s ease;
+}
+
+.btn-explore:hover i {
+  transform: translateX(3px);
+}

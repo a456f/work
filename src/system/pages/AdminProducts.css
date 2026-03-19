@@ -1,0 +1,115 @@
+.admin-products-container {
+  max-width: 900px; /* Hacemos el contenedor más ancho para la tabla */
+  margin: 3rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-products-container h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+  text-align: center;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 1rem;
+}
+
+.ap-form-group {
+  margin-bottom: 1.2rem;
+}
+
+.ap-form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.ap-input, .ap-select, .ap-textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.ap-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.ap-btn-submit {
+  width: 100%;
+  padding: 1rem;
+  background-color: #232f3e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+.ap-btn-submit:hover {
+  background-color: #37475a;
+}
+
+.ap-row {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Estilos para la tabla de productos */
+.products-list-section {
+  margin-top: 3rem;
+  border-top: 2px solid #f0f0f0;
+  padding-top: 2rem;
+}
+
+.ap-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.ap-table th, .ap-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.ap-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #333;
+}
+
+.ap-action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 0.85rem;
+}
+
+.btn-edit {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-delete {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.ap-btn-cancel {
+  background-color: #95a5a6;
+  margin-top: 10px;
+}

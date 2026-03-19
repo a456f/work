@@ -1,0 +1,37 @@
+.admin-orders-container {
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-top: 1.5rem;
+}
+
+.orders-table th, .orders-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.orders-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #444;
+}
+
+.order-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-PAID { background-color: #d1e7dd; color: #0f5132; }
+.status-PENDING { background-color: #fff3cd; color: #856404; }
+.status-CANCELLED { background-color: #f8d7da; color: #842029; }

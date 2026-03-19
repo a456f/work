@@ -1,0 +1,139 @@
+/* src/system/pages/ServiceRequests.css */
+.requests-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+.requests-table th, .requests-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.requests-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.requests-table tr:last-child td {
+  border-bottom: none;
+}
+
+.requests-table tr:hover {
+  background-color: #f5f7fa;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-PENDING { background-color: #fff0c2; color: #7a5c00; }
+.status-QUOTED { background-color: #cce5ff; color: #004085; }
+.status-ACCEPTED { background-color: #d4edda; color: #155724; }
+.status-IN_PROGRESS { background-color: #d1ecf1; color: #0c5460; }
+.status-DELIVERED { background-color: #e2e3e5; color: #383d41; }
+.status-COMPLETED { background-color: #d4edda; color: #155724; border: 1px solid #155724; }
+.status-REVISION { background-color: #ffccbc; color: #bf360c; }
+.status-CANCELLED, .status-REJECTED { background-color: #f8d7da; color: #721c24; }
+
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-quote {
+  background-color: #28a745;
+  color: white;
+}
+.btn-quote:hover {
+  background-color: #218838;
+}
+
+.btn-start {
+  background-color: #17a2b8;
+  color: white;
+}
+.btn-start:hover {
+  background-color: #138496;
+}
+
+.btn-deliver {
+  background-color: #6f42c1;
+  color: white;
+}
+.btn-deliver:hover {
+  background-color: #5a32a3;
+}
+
+/* Modal Styles */
+.quote-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.quote-modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.quote-modal-content h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.quote-form-group {
+  margin-bottom: 1rem;
+}
+
+.quote-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.quote-form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.quote-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}

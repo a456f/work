@@ -1,0 +1,245 @@
+/* src/web/pages/ClientRequests.css */
+.client-requests-page {
+  background-color: #f3f4f6;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.client-requests-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.client-requests-container h2 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+.requests-table th, .requests-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.requests-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.requests-table tr:last-child td {
+  border-bottom: none;
+}
+
+.requests-table tr:hover {
+  background-color: #f5f7fa;
+}
+
+/* BADGES DE ESTADO */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.status-PENDING { background-color: #fff0c2; color: #7a5c00; }
+.status-QUOTED { background-color: #cce5ff; color: #004085; }
+.status-ACCEPTED { background-color: #d4edda; color: #155724; }
+.status-IN_PROGRESS { background-color: #e0f7fa; color: #006064; }
+.status-DELIVERED { background-color: #d1c4e9; color: #4a148c; }
+.status-REVISION { background-color: #ffccbc; color: #4a148c; }
+.status-COMPLETED { background-color: #e2e3e5; color: #383d41; }
+.status-CANCELLED, .status-REJECTED { background-color: #f8d7da; color: #721c24; }
+
+/* BOTONES DE ACCIÓN */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.btn-accept {
+  background-color: #28a745;
+  color: white;
+}
+.btn-accept:hover {
+  background-color: #218838;
+}
+
+.btn-reject {
+  background-color: #dc3545;
+  color: white;
+}
+.btn-reject:hover {
+  background-color: #c82333;
+}
+
+.btn-view-delivery {
+  background-color: #6f42c1;
+  color: white;
+}
+.btn-view-delivery:hover {
+  background-color: #59359a;
+}
+
+.btn-revision {
+  background-color: #ff9800;
+  color: white;
+}
+.btn-revision:hover {
+  background-color: #e65100;
+}
+
+.btn-complete {
+  background-color: #28a745;
+  color: white;
+}
+.btn-complete:hover {
+  background-color: #1e7e34;
+}
+
+.btn-rate {
+  background-color: #ffc107;
+  color: #212529;
+}
+.btn-rate:hover {
+  background-color: #e0a800;
+}
+
+.rated-text {
+  color: #28a745;
+  font-weight: 500;
+}
+/* ESTILOS DEL MODAL (Copiados/Adaptados) */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #666;
+}
+
+/* Historial de Entregas */
+.delivery-history-container {
+  margin: 1.5rem 0;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.delivery-item {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--accent);
+}
+
+.delivery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.version-tag {
+  background: #333;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.delivery-date {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.delivery-message {
+  margin-bottom: 1rem;
+  white-space: pre-line;
+  color: #333;
+}
+.delivery-file-link {
+  color: #007bff;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.delivery-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+/* Review Modal Specifics */
+.review-modal .review-form-group {
+  margin-bottom: 1.5rem;
+}
+.review-modal label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.review-modal textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  min-height: 80px;
+}
