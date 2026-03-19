@@ -1,5 +1,6 @@
 import { useState } from 'react';
-  import { WebLayout } from './WebLayout';
+import { Link } from 'react-router-dom';
+import { WebLayout } from './WebLayout';
 import { API_URL } from '../../config';
   
   export const ClientRegister = () => {
@@ -41,6 +42,7 @@ import { API_URL } from '../../config';
           <p>Crea tu perfil para contactar expertos.</p>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input name="name" onChange={handleChange} type="text" placeholder="Nombre completo" required />
+          
             <input name="email" onChange={handleChange} type="email" placeholder="Email" required />
             <input name="password" onChange={handleChange} type="password" placeholder="Contraseña" required />
             <input name="phone" onChange={handleChange} type="tel" placeholder="Teléfono (Opcional)" />
@@ -48,7 +50,10 @@ import { API_URL } from '../../config';
             <input name="city" onChange={handleChange} type="text" placeholder="Ciudad (Opcional)" />
             <input name="address" onChange={handleChange} type="text" placeholder="Dirección (Opcional)" />
             <button type="submit" style={{ padding: '0.5rem', background: '#007bff', color: 'white', border: 'none' }}>Registrarse como Cliente</button>
+         
           </form>
+           ¿Ya tienes cuenta? <Link to="/login/client">Inicia sesión aquí</Link>
+       
         </div>
       </WebLayout>
     );
