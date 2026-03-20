@@ -27,6 +27,10 @@ app.use(cors());
 app.use(express.json());
 
 // --- SOCKET.IO LÓGICA DE TIEMPO REAL ---
+
+// Mapa de participantes activos por subasta: auctionId -> Set de socket.id
+const auctionParticipants = new Map();
+
 io.on('connection', (socket) => {
   console.log('Usuario conectado al socket:', socket.id);
 
@@ -44,13 +48,48 @@ io.on('connection', (socket) => {
 
   // Manejar indicador de "escribiendo..."
   socket.on('typing_start', (data) => {
-    // data: { requestId }
     socket.to(`request_${data.requestId}`).emit('user_is_typing');
   });
 
   socket.on('typing_stop', (data) => {
-    // data: { requestId }
     socket.to(`request_${data.requestId}`).emit('user_stopped_typing');
+  });
+
+  // ── SUBASTAS EN TIEMPO REAL ──
+
+  socket.on('join_auction', (auctionId) => {
+    const key = String(auctionId);
+    socket.join(`auction_${key}`);
+    if (!auctionParticipants.has(key)) auctionParticipants.set(key, new Set());
+    auctionParticipants.get(key).add(socket.id);
+    io.to(`auction_${key}`).emit('participants_update', {
+      auction_id: auctionId,
+      count: auctionParticipants.get(key).size,
+    });
+  });
+
+  socket.on('leave_auction', (auctionId) => {
+    const key = String(auctionId);
+    socket.leave(`auction_${key}`);
+    if (auctionParticipants.has(key)) {
+      auctionParticipants.get(key).delete(socket.id);
+      io.to(`auction_${key}`).emit('participants_update', {
+        auction_id: auctionId,
+        count: auctionParticipants.get(key).size,
+      });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    auctionParticipants.forEach((participants, key) => {
+      if (participants.has(socket.id)) {
+        participants.delete(socket.id);
+        io.to(`auction_${key}`).emit('participants_update', {
+          auction_id: parseInt(key),
+          count: participants.size,
+        });
+      }
+    });
   });
 });
 
@@ -1312,6 +1351,352 @@ app.post('/api/chat-image', async (req, res) => {
   } catch (error) {
     console.error('Error generando imagen con OpenAI:', error);
     res.status(500).json({ error: 'Error interno del servidor al generar la imagen.' });
+  }
+});
+
+// ─────────────────────────────────────────────
+// SUBASTAS (Auctions)
+// ─────────────────────────────────────────────
+
+// GET /api/auctions  — lista todas las subastas con info del item y conteo de pujas
+app.get('/api/auctions', async (req, res) => {
+  try {
+    const { category, status } = req.query;
+    let query = `
+      SELECT
+        a.id, a.auction_item_id, a.starting_price, a.current_price,
+        a.start_time, a.end_time, a.status, a.winner_user_id, a.created_at,
+        ai.title, ai.description, ai.category, ai.image_url,
+        ai.condition_text, ai.location_text, ai.lot_code,
+        ai.brand, ai.model, ai.year_text, ai.seller_name,
+        ai.base_price, ai.is_featured,
+        COUNT(b.id) AS bid_count
+      FROM auctions a
+      JOIN auction_items ai ON a.auction_item_id = ai.id
+      LEFT JOIN bids b ON b.auction_id = a.id
+      WHERE 1=1
+    `;
+    const params = [];
+    if (category) { query += ' AND ai.category = ?'; params.push(category); }
+    if (status)   { query += ' AND a.status = ?';    params.push(status); }
+    query += ' GROUP BY a.id ORDER BY a.status ASC, a.end_time ASC';
+
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error GET /api/auctions:', err);
+    res.status(500).json({ error: 'Error al obtener subastas.' });
+  }
+});
+
+// GET /api/auctions/:id  — detalle de una subasta
+app.get('/api/auctions/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        a.*, ai.title, ai.description, ai.category, ai.image_url,
+        ai.condition_text, ai.location_text, ai.lot_code,
+        ai.brand, ai.model, ai.year_text, ai.seller_name,
+        ai.base_price, ai.is_featured,
+        COUNT(b.id) AS bid_count
+      FROM auctions a
+      JOIN auction_items ai ON a.auction_item_id = ai.id
+      LEFT JOIN bids b ON b.auction_id = a.id
+      WHERE a.id = ?
+      GROUP BY a.id
+    `, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Subasta no encontrada.' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error GET /api/auctions/:id:', err);
+    res.status(500).json({ error: 'Error al obtener la subasta.' });
+  }
+});
+
+// GET /api/auctions/:id/bids  — historial de pujas (mayor primero)
+app.get('/api/auctions/:id/bids', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT b.id, b.auction_id, b.user_id, b.amount, b.created_at,
+             u.name AS user_name
+      FROM bids b
+      JOIN users u ON u.id = b.user_id
+      WHERE b.auction_id = ?
+      ORDER BY b.amount DESC, b.created_at DESC
+      LIMIT 50
+    `, [req.params.id]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error GET /api/auctions/:id/bids:', err);
+    res.status(500).json({ error: 'Error al obtener las pujas.' });
+  }
+});
+
+// ════════════════════════════════════════════
+// POINTS SYSTEM
+// ════════════════════════════════════════════
+
+async function ensureClientPoints(clientId) {
+  await pool.query(
+    'INSERT IGNORE INTO client_points (client_id, balance, total_earned, total_spent) VALUES (?, 0, 0, 0)',
+    [clientId]
+  );
+}
+
+// GET /api/clients/:id/points
+app.get('/api/clients/:id/points', async (req, res) => {
+  const clientId = req.params.id;
+  try {
+    await ensureClientPoints(clientId);
+    const [[points]] = await pool.query('SELECT * FROM client_points WHERE client_id = ?', [clientId]);
+    const [transactions] = await pool.query(
+      'SELECT * FROM points_transactions WHERE client_id = ? ORDER BY created_at DESC LIMIT 30',
+      [clientId]
+    );
+    res.json({ ...points, transactions });
+  } catch (err) {
+    console.error('Error GET /api/clients/:id/points:', err);
+    res.status(500).json({ error: 'Error al obtener puntos.' });
+  }
+});
+
+// GET /api/points/packages
+app.get('/api/points/packages', async (req, res) => {
+  try {
+    const [packages] = await pool.query('SELECT * FROM points_packages WHERE is_active = TRUE ORDER BY price_usd ASC');
+    res.json(packages);
+  } catch (err) {
+    console.error('Error GET /api/points/packages:', err);
+    res.status(500).json({ error: 'Error al obtener paquetes.' });
+  }
+});
+
+// POST /api/clients/:id/points/purchase
+app.post('/api/clients/:id/points/purchase', async (req, res) => {
+  const clientId = req.params.id;
+  const { package_id } = req.body;
+  if (!package_id) return res.status(400).json({ error: 'Falta package_id.' });
+  try {
+    await ensureClientPoints(clientId);
+    const [[pkg]] = await pool.query('SELECT * FROM points_packages WHERE id = ? AND is_active = TRUE', [package_id]);
+    if (!pkg) return res.status(404).json({ error: 'Paquete no encontrado.' });
+
+    const totalPoints = pkg.points + pkg.bonus_points;
+    const [[current]] = await pool.query('SELECT balance FROM client_points WHERE client_id = ?', [clientId]);
+    const newBalance = current.balance + totalPoints;
+
+    await pool.query(
+      'UPDATE client_points SET balance = ?, total_earned = total_earned + ? WHERE client_id = ?',
+      [newBalance, totalPoints, clientId]
+    );
+    await pool.query(
+      'INSERT INTO points_transactions (client_id, type, amount, balance_after, description) VALUES (?, ?, ?, ?, ?)',
+      [clientId, 'PURCHASE', totalPoints, newBalance, `Compra paquete ${pkg.name}: +${totalPoints} pts`]
+    );
+    res.json({ success: true, new_balance: newBalance, points_added: totalPoints });
+  } catch (err) {
+    console.error('Error POST /api/clients/:id/points/purchase:', err);
+    res.status(500).json({ error: 'Error al procesar la compra.' });
+  }
+});
+
+app.post('/api/auctions/:id/bids', async (req, res) => {
+  const { user_id, amount } = req.body;
+  const auctionId = req.params.id;
+  if (!user_id || !amount) return res.status(400).json({ error: 'Faltan campos requeridos.' });
+
+  try {
+    await ensureClientPoints(user_id);
+
+    const [[auction]] = await pool.query(
+      'SELECT id, current_price, end_time, status FROM auctions WHERE id = ?',
+      [auctionId]
+    );
+    if (!auction) return res.status(404).json({ error: 'Subasta no encontrada.' });
+    if (auction.status !== 'ACTIVE') return res.status(400).json({ error: 'La subasta no está activa.' });
+    if (new Date(auction.end_time) < new Date()) return res.status(400).json({ error: 'La subasta ya ha cerrado.' });
+
+    const bidAmount = parseFloat(amount);
+    if (bidAmount <= parseFloat(auction.current_price)) {
+      return res.status(400).json({ error: `La puja debe superar el precio actual: $${auction.current_price}` });
+    }
+
+    // Check balance
+    const [[clientPoints]] = await pool.query('SELECT balance FROM client_points WHERE client_id = ?', [user_id]);
+    if (clientPoints.balance < bidAmount) {
+      return res.status(400).json({
+        error: `Puntos insuficientes. Tienes ${clientPoints.balance} pts y necesitas ${bidAmount} pts.`,
+        insufficient_points: true
+      });
+    }
+
+    // Find previous leader (highest bid from another user)
+    const [[prevBid]] = await pool.query(
+      'SELECT user_id, amount FROM bids WHERE auction_id = ? AND user_id != ? ORDER BY amount DESC LIMIT 1',
+      [auctionId, user_id]
+    );
+
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
+    try {
+      // Deduct from new bidder
+      const newBidderBalance = clientPoints.balance - bidAmount;
+      await conn.query(
+        'UPDATE client_points SET balance = ?, total_spent = total_spent + ? WHERE client_id = ?',
+        [newBidderBalance, bidAmount, user_id]
+      );
+      await conn.query(
+        'INSERT INTO points_transactions (client_id, type, amount, balance_after, description, reference_id) VALUES (?, ?, ?, ?, ?, ?)',
+        [user_id, 'BID_PLACED', -bidAmount, newBidderBalance, `Puja de ${bidAmount} pts — subasta #${auctionId}`, auctionId]
+      );
+
+      // Refund previous leader
+      if (prevBid) {
+        const [[prevPoints]] = await conn.query('SELECT balance FROM client_points WHERE client_id = ?', [prevBid.user_id]);
+        const refundAmount = parseFloat(prevBid.amount);
+        const prevNewBalance = prevPoints.balance + refundAmount;
+        await conn.query(
+          'UPDATE client_points SET balance = ?, total_spent = GREATEST(0, total_spent - ?) WHERE client_id = ?',
+          [prevNewBalance, refundAmount, prevBid.user_id]
+        );
+        await conn.query(
+          'INSERT INTO points_transactions (client_id, type, amount, balance_after, description, reference_id) VALUES (?, ?, ?, ?, ?, ?)',
+          [prevBid.user_id, 'BID_REFUND', refundAmount, prevNewBalance, `Reembolso de puja — subasta #${auctionId}`, auctionId]
+        );
+      }
+
+      await conn.query('INSERT INTO bids (auction_id, user_id, amount) VALUES (?, ?, ?)', [auctionId, user_id, amount]);
+      await conn.query('UPDATE auctions SET current_price = ? WHERE id = ?', [amount, auctionId]);
+
+      await conn.commit();
+
+      // Emit real-time event to all viewers of this auction
+      const [[bidUser]] = await pool.query('SELECT name FROM users WHERE id = ?', [user_id]);
+      io.to(`auction_${auctionId}`).emit('new_bid', {
+        auction_id: parseInt(auctionId),
+        new_price:  parseFloat(amount),
+        user_id:    parseInt(user_id),
+        user_name:  bidUser?.name || `Usuario #${user_id}`,
+      });
+
+      res.json({ success: true, new_price: amount, new_balance: newBidderBalance });
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error('Error POST /api/auctions/:id/bids:', err);
+    res.status(500).json({ error: 'Error al registrar la puja.' });
+  }
+});
+
+// ════════════════════════════════════════════
+// ADMIN PANEL API
+// ════════════════════════════════════════════
+
+// POST /api/admin/login
+app.post('/api/admin/login', (req, res) => {
+  const { email, password } = req.body;
+  const adminEmail    = process.env.ADMIN_EMAIL    || 'admin@admin.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  if (email === adminEmail && password === adminPassword) {
+    res.json({ success: true, name: 'Administrador' });
+  } else {
+    res.status(401).json({ error: 'Credenciales incorrectas.' });
+  }
+});
+
+// GET /api/admin/stats
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const [[{ total_users }]]    = await pool.query('SELECT COUNT(*) as total_users FROM users');
+    const [[{ total_products }]] = await pool.query('SELECT COUNT(*) as total_products FROM products');
+    const [[{ total_auctions }]] = await pool.query('SELECT COUNT(*) as total_auctions FROM auctions');
+    const [[{ active_auctions }]]= await pool.query("SELECT COUNT(*) as active_auctions FROM auctions WHERE status='ACTIVE'");
+    const [[{ total_orders }]]   = await pool.query('SELECT COUNT(*) as total_orders FROM orders');
+    const [[{ total_bids }]]     = await pool.query('SELECT COUNT(*) as total_bids FROM bids');
+    res.json({ total_users, total_products, total_auctions, active_auctions, total_orders, total_bids });
+  } catch (err) {
+    console.error('Error GET /api/admin/stats:', err);
+    res.status(500).json({ error: 'Error al obtener estadísticas.' });
+  }
+});
+
+// GET /api/admin/users
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      'SELECT id, name, email, role, phone, country, city, created_at FROM users ORDER BY created_at DESC'
+    );
+    res.json(users);
+  } catch (err) {
+    console.error('Error GET /api/admin/users:', err);
+    res.status(500).json({ error: 'Error al obtener usuarios.' });
+  }
+});
+
+// POST /api/auctions (create auction + item)
+app.post('/api/auctions', async (req, res) => {
+  const {
+    title, description, category, image_url, condition_text,
+    location_text, lot_code, brand, model, year_text, is_featured,
+    starting_price, start_time, end_time
+  } = req.body;
+
+  if (!title || !starting_price || !start_time || !end_time) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: título, precio inicial, fechas.' });
+  }
+
+  try {
+    const [itemResult] = await pool.query(
+      `INSERT INTO auction_items (title, description, category, image_url, condition_text, location_text, lot_code, brand, model, year_text, is_featured)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, description || null, category || null, image_url || null, condition_text || null,
+       location_text || null, lot_code || null, brand || null, model || null, year_text || null,
+       is_featured ? 1 : 0]
+    );
+
+    const itemId = itemResult.insertId;
+    const price  = parseFloat(starting_price);
+
+    await pool.query(
+      `INSERT INTO auctions (auction_item_id, starting_price, current_price, start_time, end_time, status)
+       VALUES (?, ?, ?, ?, ?, 'ACTIVE')`,
+      [itemId, price, price, start_time, end_time]
+    );
+
+    res.status(201).json({ success: true, message: 'Subasta creada correctamente.' });
+  } catch (err) {
+    console.error('Error POST /api/auctions:', err);
+    res.status(500).json({ error: 'Error al crear la subasta.' });
+  }
+});
+
+// PUT /api/admin/auctions/:id/status
+app.put('/api/admin/auctions/:id/status', async (req, res) => {
+  const { status } = req.body;
+  const validStatuses = ['ACTIVE', 'PAUSED', 'ENDED', 'CANCELLED'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: 'Estado inválido.' });
+  }
+  try {
+    await pool.query('UPDATE auctions SET status = ? WHERE id = ?', [status, req.params.id]);
+    res.json({ success: true, message: `Subasta actualizada a ${status}.` });
+  } catch (err) {
+    console.error('Error PUT /api/admin/auctions/:id/status:', err);
+    res.status(500).json({ error: 'Error al actualizar estado.' });
+  }
+});
+
+// DELETE /api/admin/products/:id
+app.delete('/api/admin/products/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM products WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al eliminar producto.' });
   }
 });
 

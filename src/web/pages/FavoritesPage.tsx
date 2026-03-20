@@ -9,75 +9,88 @@ export const FavoritesPage = () => {
 
   return (
     <div className="favorites-page">
-      <div className="favorites-header">
-        <h2><i className="fa-solid fa-heart" style={{color: '#ff4757', marginRight: '10px'}}></i> Mis Favoritos</h2>
-        <span className="favorites-count">{favorites.length} artículos</span>
-      </div>
-      
-      {favorites.length === 0 ? (
-        <div className="favorites-empty-state">
-          <div className="empty-icon-container">
-            <i className="fa-regular fa-heart"></i>
+      <div className="favorites-wrapper">
+
+        {/* Header */}
+        <div className="favorites-page-header">
+          <div>
+            <span className="eyebrow">
+              <i className="fa-solid fa-heart"></i> Lista de deseos
+            </span>
+            <h1 className="favorites-heading">Mis Favoritos</h1>
           </div>
-          <h3>Tu lista de deseos está vacía</h3>
-          <p>
-            Parece que aún no has añadido ningún producto a tus favoritos. 
-            Explora nuestra colección y guarda lo que te inspire.
-          </p>
-          <Link to="/products" className="btn-explore">
-            <i className="fa-solid fa-compass"></i> Explorar Productos
-          </Link>
+          {favorites.length > 0 && (
+            <div className="favorites-count-badge">
+              {favorites.length} {favorites.length === 1 ? 'artículo' : 'artículos'}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="product-grid">
-          {favorites.map(product => (
-            <div key={product.id} className="product-card" style={{position: 'relative'}}>
-              <button 
-                onClick={() => removeFromFavorites(product.id)}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  background: 'rgba(255,255,255,0.9)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '30px',
-                  height: '30px',
-                  cursor: 'pointer',
-                  color: '#ff4757',
-                  zIndex: 10,
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                }}
-                title="Eliminar de favoritos"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-              
-              <div className="product-image">
-                <img src={product.cover_image || 'https://via.placeholder.com/300x400'} alt={product.title} />
-              </div>
-              <div className="product-info">
-                <h3 className="product-title">{product.title}</h3>
-                <div className="product-footer">
-                  <span className="price">${product.price}</span>
-                  <button 
-                    className="add-cart-btn"
-                    onClick={() => addToCart({
-                      id: product.id,
-                      title: product.title,
-                      price: product.price,
-                      type: (product.type as 'BOOK' | 'COURSE') || 'BOOK',
-                      cover_image: product.cover_image
-                    })}
+
+        {favorites.length === 0 ? (
+          /* Empty state */
+          <div className="favorites-empty">
+            <div className="favorites-empty-icon">
+              <i className="fa-regular fa-heart"></i>
+            </div>
+            <h3>Tu lista de deseos está vacía</h3>
+            <p>Guarda los libros, cursos y servicios que más te interesen para encontrarlos fácilmente.</p>
+            <div className="favorites-empty-actions">
+              <Link to="/books" className="fav-empty-btn primary">
+                <i className="fa-solid fa-book-open"></i> Explorar libros
+              </Link>
+              <Link to="/services" className="fav-empty-btn secondary">
+                <i className="fa-solid fa-wand-magic-sparkles"></i> Ver servicios
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="favorites-grid">
+            {favorites.map(product => (
+              <div key={product.id} className="fav-card">
+                <div className="fav-card-image">
+                  <img
+                    src={product.cover_image || 'https://via.placeholder.com/300x200?text=Producto'}
+                    alt={product.title}
+                  />
+                  <span className={`fav-type-badge type-${product.type}`}>
+                    {product.type === 'COURSE' ? 'Curso' : product.type === 'BOOK' ? 'Libro' : product.type}
+                  </span>
+                  <button
+                    className="fav-remove-btn"
+                    onClick={() => removeFromFavorites(product.id)}
+                    title="Quitar de favoritos"
                   >
-                    <i className="fa-solid fa-cart-plus"></i>
+                    <i className="fa-solid fa-heart-crack"></i>
                   </button>
                 </div>
+
+                <div className="fav-card-body">
+                  <h3 className="fav-card-title">{product.title}</h3>
+
+                  <div className="fav-card-footer">
+                    <div className="fav-price-block">
+                      <span className="fav-price">${Number(product.price).toFixed(2)}</span>
+                    </div>
+                    <button
+                      className="fav-add-cart-btn"
+                      onClick={() => addToCart({
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        type: (product.type as 'BOOK' | 'COURSE') || 'BOOK',
+                        cover_image: product.cover_image
+                      })}
+                    >
+                      <i className="fa-solid fa-cart-plus"></i>
+                      Agregar
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

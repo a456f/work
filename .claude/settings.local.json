@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(printf '\\\\n.cm-points-balance {\\\\n  display: flex;\\\\n  align-items: center;\\\\n  gap: 8px;\\\\n  padding: 10px 14px;\\\\n  border-radius: 8px;\\\\n  background: rgba\\(212,160,23,.08\\);\\\\n  border: 1px solid rgba\\(212,160,23,.2\\);\\\\n  color: var\\(--c-gold-lt\\);\\\\n  font-size: .84rem;\\\\n}\\\\n.cm-points-balance i { color: var\\(--c-gold\\); }\\\\n.cm-pts-warn {\\\\n  margin-left: auto;\\\\n  font-size: .72rem;\\\\n  font-weight: 900;\\\\n  color: var\\(--c-red-neon\\);\\\\n  text-transform: uppercase;\\\\n  letter-spacing: .05em;\\\\n}\\\\n')",
+      "Bash(\"c:\\\\Users\\\\ANTHONY\\\\Downloads\\\\WorkProject\\\\work-project\\\\src\\\\web\\\\pages\\\\AuctionsPage.css\")"
+    ]
+  }
+}

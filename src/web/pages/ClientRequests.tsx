@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './ClientRequests.css'; // New CSS file
+import './ClientRequests.css';
 import { StarRating } from '../components/StarRating';
 import { API_URL } from '../../config';
 import { RequestChat } from '../components/RequestChat';
@@ -28,6 +28,18 @@ interface Delivery {
   created_at: string;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Pendiente',
+  QUOTED: 'Cotizado',
+  ACCEPTED: 'Aceptado',
+  IN_PROGRESS: 'En progreso',
+  DELIVERED: 'Entregado',
+  REVISION: 'Revisión',
+  COMPLETED: 'Completado',
+  CANCELLED: 'Cancelado',
+  REJECTED: 'Rechazado',
+};
+
 export const ClientRequests = () => {
   const [requests, setRequests] = useState<ClientRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,16 +61,12 @@ export const ClientRequests = () => {
       navigate('/login/client');
       return;
     }
-
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/clients/${user.id}/requests`);
       const data = await res.json();
-      if (res.ok) {
-        setRequests(data);
-      } else {
-        throw new Error(data.error || 'Error al cargar las solicitudes');
-      }
+      if (res.ok) setRequests(data);
+      else throw new Error(data.error || 'Error al cargar las solicitudes');
     } catch (err) {
       console.error(err);
       alert('No se pudieron cargar tus solicitudes.');
@@ -67,67 +75,41 @@ export const ClientRequests = () => {
     }
   };
 
-  useEffect(() => {
-    fetchClientRequests();
-  }, []);
+  useEffect(() => { fetchClientRequests(); }, []);
 
   const handleResponse = async (requestId: number, newStatus: 'ACCEPTED' | 'CANCELLED') => {
     if (!user) return;
-
     try {
       const res = await fetch(`${API_URL}/service-requests/${requestId}/respond`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newStatus, clientId: user.id })
       });
-
       const data = await res.json();
-      if (res.ok) {
-        alert(data.message);
-        fetchClientRequests(); // Refresh the list
-      } else {
-        throw new Error(data.error || 'No se pudo actualizar la solicitud.');
-      }
-    } catch (err: any) {
-      alert(`Error: ${err.message}`);
-    }
+      if (res.ok) { alert(data.message); fetchClientRequests(); }
+      else throw new Error(data.error || 'No se pudo actualizar la solicitud.');
+    } catch (err: any) { alert(`Error: ${err.message}`); }
   };
 
   const handleAction = async (requestId: number, action: 'complete' | 'revision') => {
-    if (!confirm(action === 'complete' 
-      ? '¿Estás seguro de finalizar el pedido? Esto confirmará que estás satisfecho con el trabajo.' 
+    if (!confirm(action === 'complete'
+      ? '¿Estás seguro de finalizar el pedido? Esto confirmará que estás satisfecho con el trabajo.'
       : '¿Estás seguro de solicitar una revisión? El profesional deberá entregar una nueva versión.')) return;
-
     try {
-      const res = await fetch(`${API_URL}/service-requests/${requestId}/${action}`, {
-        method: 'PUT'
-      });
-
+      const res = await fetch(`${API_URL}/service-requests/${requestId}/${action}`, { method: 'PUT' });
       const data = await res.json();
-      if (res.ok) {
-        alert(data.message);
-        setViewingDelivery(null);
-        fetchClientRequests();
-      } else {
-        alert(data.error);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error de conexión');
-    }
+      if (res.ok) { alert(data.message); setViewingDelivery(null); fetchClientRequests(); }
+      else alert(data.error);
+    } catch (err) { alert('Error de conexión'); }
   };
 
   const openDeliveryModal = async (req: ClientRequest) => {
     setViewingDelivery(req);
-    setDeliveryHistory([]); // Limpiar historial anterior
+    setDeliveryHistory([]);
     try {
       const res = await fetch(`${API_URL}/service-requests/${req.id}/deliveries`);
-      if (res.ok) {
-        setDeliveryHistory(await res.json());
-      }
-    } catch (err) {
-      console.error("Error cargando historial", err);
-    }
+      if (res.ok) setDeliveryHistory(await res.json());
+    } catch (err) { console.error('Error cargando historial', err); }
   };
 
   const openReviewModal = (req: ClientRequest) => {
@@ -142,7 +124,6 @@ export const ClientRequests = () => {
       alert('Por favor, selecciona una calificación de 1 a 5 estrellas.');
       return;
     }
-
     try {
       const res = await fetch(`${API_URL}/reviews`, {
         method: 'POST',
@@ -151,135 +132,190 @@ export const ClientRequests = () => {
           request_id: reviewRequest.id,
           client_id: user.id,
           provider_id: reviewRequest.provider_id,
-          rating: rating,
-          comment: comment
+          rating,
+          comment
         })
       });
-
       const data = await res.json();
-      if (res.ok) {
-        alert(data.message);
-        setReviewRequest(null);
-        fetchClientRequests();
-      } else {
-        throw new Error(data.error || 'No se pudo enviar la reseña.');
-      }
-
-    } catch (err: any) {
-      console.error(err);
-      alert(`Error: ${err.message}`);
-    }
+      if (res.ok) { alert(data.message); setReviewRequest(null); fetchClientRequests(); }
+      else throw new Error(data.error || 'No se pudo enviar la reseña.');
+    } catch (err: any) { alert(`Error: ${err.message}`); }
   };
 
   return (
     <div className="client-requests-page">
-  
-
       <div className="client-requests-container">
-        <h2>Mis Solicitudes de Servicio</h2>
+
+        {/* ── Header ── */}
+        <div className="requests-page-header">
+          <div>
+            <span className="eyebrow">
+              <i className="fa-solid fa-list-check"></i> Gestión de proyectos
+            </span>
+            <h1 className="requests-heading">Mis Solicitudes</h1>
+          </div>
+          {!loading && (
+            <div className="requests-header-meta">
+              <div className="requests-total-badge">
+                {requests.length} {requests.length === 1 ? 'solicitud' : 'solicitudes'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Content ── */}
         {loading ? (
-          <p>Cargando...</p>
+          <div className="requests-loading">
+            <i className="fa-solid fa-spinner fa-spin"></i>
+            <span>Cargando tus solicitudes...</span>
+          </div>
+        ) : requests.length === 0 ? (
+          <div className="requests-empty">
+            <div className="requests-empty-icon">
+              <i className="fa-solid fa-inbox"></i>
+            </div>
+            <h3>No tienes solicitudes aún</h3>
+            <p>Explora nuestros servicios profesionales y envía tu primera solicitud de proyecto.</p>
+            <Link to="/services" className="requests-empty-btn">
+              <i className="fa-solid fa-wand-magic-sparkles"></i> Explorar servicios
+            </Link>
+          </div>
         ) : (
-          <table className="requests-table">
-            <thead>
-              <tr>
-                <th>Servicio</th>
-                <th>Profesional</th>
-                <th>Precio Cotizado</th>
-                <th>Fecha Límite</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.length > 0 ? requests.map(req => (
-                <tr key={req.id}>
-                  <td>{req.service_title}</td>
-                  <td>{req.provider_name}</td>
-                  <td>{req.agreed_price ? `$${req.agreed_price}` : 'N/A'}</td>
-                  <td>{req.deadline ? new Date(req.deadline).toLocaleDateString() : 'N/A'}</td>
-                  <td>
-                    <span className={`status-badge status-${req.status}`}>{req.status}</span>
-                  </td>
-                  <td>
-                    {req.status === 'PENDING' && <span style={{color:'#999', fontSize:'0.8rem'}}>Esperando cotización...</span>}
-                    
-                    {/* Acciones para aceptar cotización */}
-                    {req.status === 'QUOTED' && (
-                      <div className="action-buttons">
-                        <button className="action-btn btn-accept" onClick={() => handleResponse(req.id, 'ACCEPTED')}>
-                          Aceptar
-                        </button>
-                        <button className="action-btn btn-reject" onClick={() => handleResponse(req.id, 'CANCELLED')}>
-                          Rechazar
-                        </button>
-                      </div>
-                    )}
+          <div className="requests-list">
+            {requests.map(req => (
+              <div key={req.id} className="request-card">
+                <div className="request-card-main">
 
-                    {req.status === 'COMPLETED' && !req.review_id && (
-                      <button className="action-btn btn-rate" onClick={() => openReviewModal(req)}>
-                        <i className="fa-solid fa-star"></i> Calificar
-                      </button>
-                    )}
-
-                    {req.status === 'COMPLETED' && req.review_id && (
-                      <span className="rated-text">
-                        <i className="fa-solid fa-check-circle"></i> Calificado
+                  {/* Left */}
+                  <div className="request-card-left">
+                    <div className="request-card-top">
+                      <span className="request-id"># {req.id}</span>
+                      <span className={`status-badge status-${req.status}`}>
+                        {STATUS_LABELS[req.status] || req.status}
                       </span>
-                    )}
+                    </div>
 
-                    {/* Ver entrega cuando está DELIVERED o COMPLETED */}
-                    {(req.status === 'DELIVERED' || req.status === 'COMPLETED') && (
-                      <button className="action-btn btn-view-delivery" onClick={() => openDeliveryModal(req)}>
-                        <i className="fa-solid fa-eye"></i> Ver Entrega
+                    <h3 className="request-card-title">{req.service_title}</h3>
+
+                    <div className="request-card-meta">
+                      <span>
+                        <i className="fa-solid fa-user-tie"></i>
+                        {req.provider_name}
+                      </span>
+                      <span>
+                        <i className="fa-regular fa-calendar"></i>
+                        {new Date(req.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                      {req.deadline && (
+                        <span>
+                          <i className="fa-solid fa-flag"></i>
+                          Límite: {new Date(req.deadline).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        </span>
+                      )}
+                    </div>
+
+                    {req.description && (
+                      <p className="request-description">{req.description}</p>
+                    )}
+                  </div>
+
+                  {/* Right */}
+                  <div className="request-card-right">
+                    {req.agreed_price ? (
+                      <div className="request-price-block">
+                        <div className="request-price-label">Precio acordado</div>
+                        <div className="request-price-val">${Number(req.agreed_price).toFixed(2)}</div>
+                      </div>
+                    ) : (
+                      <span className="request-price-na">Sin cotización</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action bar */}
+                <div className="request-card-actions">
+
+                  {req.status === 'PENDING' && (
+                    <span className="pending-hint">
+                      <i className="fa-regular fa-clock"></i>
+                      Esperando cotización del profesional...
+                    </span>
+                  )}
+
+                  {req.status === 'QUOTED' && (
+                    <>
+                      <button className="action-btn btn-accept" onClick={() => handleResponse(req.id, 'ACCEPTED')}>
+                        <i className="fa-solid fa-check"></i> Aceptar cotización
                       </button>
-                    )}
+                      <button className="action-btn btn-reject" onClick={() => handleResponse(req.id, 'CANCELLED')}>
+                        <i className="fa-solid fa-xmark"></i> Rechazar
+                      </button>
+                    </>
+                  )}
 
-                    {/* Botón de Chat */}
-                    <button className="action-btn" style={{marginLeft:'5px', background:'#444', color:'white'}} onClick={() => setChatRequest(req)}>
-                      <i className="fa-solid fa-comments"></i> Chat
+                  {(req.status === 'DELIVERED' || req.status === 'COMPLETED') && (
+                    <button className="action-btn btn-view-delivery" onClick={() => openDeliveryModal(req)}>
+                      <i className="fa-solid fa-eye"></i> Ver entrega
                     </button>
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
-                    No has realizado ninguna solicitud.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  )}
+
+                  {req.status === 'COMPLETED' && !req.review_id && (
+                    <button className="action-btn btn-rate" onClick={() => openReviewModal(req)}>
+                      <i className="fa-solid fa-star"></i> Calificar
+                    </button>
+                  )}
+
+                  {req.status === 'COMPLETED' && req.review_id && (
+                    <span className="rated-text">
+                      <i className="fa-solid fa-circle-check"></i> Calificado
+                    </span>
+                  )}
+
+                  <button className="action-btn btn-chat" onClick={() => setChatRequest(req)} style={{ marginLeft: 'auto' }}>
+                    <i className="fa-solid fa-comments"></i> Chat
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* CHAT FLOTANTE */}
+      {/* ── Chat flotante ── */}
       {chatRequest && user && (
-        <RequestChat 
+        <RequestChat
           requestId={chatRequest.id}
           currentUserId={user.id}
-          title={`Chat - ${chatRequest.service_title}`}
+          title={`Chat — ${chatRequest.service_title}`}
           onClose={() => setChatRequest(null)}
         />
       )}
 
-      {/* Modal para ver la entrega */}
+      {/* ── Modal: Ver entrega ── */}
       {viewingDelivery && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setViewingDelivery(null); }}>
           <div className="modal-content delivery-modal">
             <button className="modal-close-btn" onClick={() => setViewingDelivery(null)}>&times;</button>
-            <h3>Entrega del Profesional</h3>
-            
+            <span className="eyebrow"><i className="fa-solid fa-box-open"></i> Entrega del profesional</span>
+            <h3>Historial de entregas</h3>
+            <p className="modal-subtitle">Servicio: <strong>{viewingDelivery.service_title}</strong></p>
+
             <div className="delivery-history-container">
-              {deliveryHistory.length === 0 ? <p>Cargando historial...</p> : deliveryHistory.map((delivery) => (
+              {deliveryHistory.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                  <i className="fa-solid fa-spinner fa-spin"></i> Cargando historial...
+                </p>
+              ) : deliveryHistory.map(delivery => (
                 <div key={delivery.id} className="delivery-item">
                   <div className="delivery-header">
-                    <span className="version-tag">Versión {delivery.version}</span>
-                    <span className="delivery-date">{new Date(delivery.created_at).toLocaleString()}</span>
+                    <span className="version-tag">v{delivery.version}</span>
+                    <span className="delivery-date">
+                      {new Date(delivery.created_at).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
                   <p className="delivery-message">"{delivery.message}"</p>
                   <a href={delivery.file_url} target="_blank" rel="noopener noreferrer" className="delivery-file-link">
-                    <i className="fa-solid fa-download"></i> Descargar Archivos (v{delivery.version})
+                    <i className="fa-solid fa-download"></i> Descargar archivos (v{delivery.version})
                   </a>
                 </div>
               ))}
@@ -288,10 +324,10 @@ export const ClientRequests = () => {
             {viewingDelivery.status === 'DELIVERED' && (
               <div className="delivery-actions">
                 <button className="action-btn btn-revision" onClick={() => handleAction(viewingDelivery.id, 'revision')}>
-                  <i className="fa-solid fa-rotate-left"></i> Pedir Revisión
+                  <i className="fa-solid fa-rotate-left"></i> Pedir revisión
                 </button>
                 <button className="action-btn btn-complete" onClick={() => handleAction(viewingDelivery.id, 'complete')}>
-                  <i className="fa-solid fa-check"></i> Finalizar Pedido
+                  <i className="fa-solid fa-check"></i> Finalizar pedido
                 </button>
               </div>
             )}
@@ -299,30 +335,31 @@ export const ClientRequests = () => {
         </div>
       )}
 
-      {/* Modal para calificar */}
+      {/* ── Modal: Calificar ── */}
       {reviewRequest && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setReviewRequest(null); }}>
           <div className="modal-content review-modal">
             <button className="modal-close-btn" onClick={() => setReviewRequest(null)}>&times;</button>
-            <h3>Calificar al Profesional</h3>
-            <p>Servicio: <strong>{reviewRequest.service_title}</strong></p>
+            <span className="eyebrow"><i className="fa-solid fa-star"></i> Calificación</span>
+            <h3>Calificar al profesional</h3>
+            <p className="modal-subtitle">Servicio: <strong>{reviewRequest.service_title}</strong></p>
             <form onSubmit={handleSendReview}>
               <div className="review-form-group">
                 <label>Tu calificación:</label>
                 <StarRating rating={rating} onRating={setRating} />
               </div>
               <div className="review-form-group">
-                <label htmlFor="comment">Comentario (opcional):</label>
+                <label htmlFor="review-comment">Comentario (opcional)</label>
                 <textarea
-                  id="comment"
+                  id="review-comment"
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  onChange={e => setComment(e.target.value)}
                   rows={4}
                   placeholder="Describe tu experiencia con el profesional..."
-                ></textarea>
+                />
               </div>
-              <button type="submit" className="action-btn btn-complete" style={{width: '100%', marginTop: '1rem'}}>
-                Enviar Calificación
+              <button type="submit" className="review-submit-btn">
+                <i className="fa-solid fa-paper-plane"></i> Enviar calificación
               </button>
             </form>
           </div>

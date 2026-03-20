@@ -43,6 +43,8 @@ export const WebLayout = ({ children }: { children: React.ReactNode }) => {
           <NavLink to="/books" className="global-tab">Libros</NavLink>
           <NavLink to="/services" className="global-tab">Servicios</NavLink>
           <NavLink to="/courses" className="global-tab">Cursos</NavLink>
+          <NavLink to="/auctions" className="global-tab">Subastas</NavLink>
+          <NavLink to="/points" className="global-tab"><i className="fa-solid fa-coins"></i> Mis Puntos</NavLink>
         </div>
       </div>
 
@@ -113,6 +115,7 @@ export const WebLayout = ({ children }: { children: React.ReactNode }) => {
             <li><NavLink to="/services">Marketplace creativo</NavLink></li>
             <li><NavLink to="/books">Biblioteca digital</NavLink></li>
             <li><NavLink to="/courses">Aprendizaje online</NavLink></li>
+            <li><NavLink to="/auctions">Subastas en vivo</NavLink></li>
           </ul>
           <div className="nav-highlight">
             <i className="fa-solid fa-bolt"></i>
@@ -137,6 +140,8 @@ export const WebLayout = ({ children }: { children: React.ReactNode }) => {
             <Link to="/services">Servicios</Link>
             <Link to="/books">Libros</Link>
             <Link to="/courses">Cursos</Link>
+            <Link to="/auctions">Subastas</Link>
+            <Link to="/points">Mis Puntos</Link>
           </div>
           <div>
             <h4>Cuenta</h4>
